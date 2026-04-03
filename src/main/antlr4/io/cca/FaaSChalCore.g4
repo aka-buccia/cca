@@ -2,6 +2,8 @@ grammar FaaSChalCore;
 
 file: procedure* ;
 
+procedure: 'def' procedureName '(' procedureParameters? ')' '{' choreography '}';
+
 choreography: interaction (';' choreography)?
             | terminated
             ;
@@ -11,6 +13,7 @@ role: ID ;
 media: ID ;
 variable: ID ;
 label: ID ;
+procedureName: ID ;
 
 interaction: communication
           | selection
@@ -20,6 +23,7 @@ interaction: communication
           | end
           | endResponse
           | conditional
+          | procedureCall
           ;
 
 communication: expression '@' role '->' expression '@' role ;
@@ -44,7 +48,18 @@ endResponse: 'end' expression '@' role '->' role ;
 
 conditional: 'if' expression '@' role 'then' '{' choreography '}' 'else' '{' choreography '}' ;
 
-procedure: 'def' ID '('  ')' '{' choreography '}';
+procedureCall: procedureName '(' procedureParameters? ')';
+procedureParameters: parameterList (',' parameterList)* ;
+parameterList: statefulParameters
+             | 'nonterm' nonterminatingParameters
+             | 'term' terminatingParameters
+             ;
+statefulParameters: role (',' role)* ;
+nonterminatingParameters: role (',' role)* ;
+terminatingParameters: terminatingTerm (',' terminatingTerm)* ;
+terminatingTerm: '[' role ',' role ']'
+               | role
+               ;
 
 
 ZERO : '0' ;

@@ -64,6 +64,7 @@ terminatingTerm: '[' role ',' role ']'
 
 ZERO : '0' ;
 WS : [ \t\r\n]+ -> skip ;
+COMMENT: '//' ~[\r\n]+ -> skip;
 CONSTANT : [0-9]+
          | STRING
          ;

@@ -1,0 +1,21 @@
+# ANTLR specific
+*.tokens
+*.interp
+*Lexer.java
+*Parser.java
+*Visitor.java
+*BaseVisitor.java
+*Listener.java
+*BaseListener.java
+
+#Build directory
+target
+
+#IDE
+.classpath
+.project
+.settings
+
+#Test files
+*.txt
+*.faasch

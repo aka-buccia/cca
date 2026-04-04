@@ -8,10 +8,13 @@ choreography: interaction (';' choreography)?
             | terminated
             ;
 
-terminated: ZERO ;
+terminated: INT {Integer.parseInt($INT.text) == 0}? ;
 role: ID ;
 media: ID ;
 variable: ID ;
+constant: INT
+        | STRING
+        ; 
 label: ID ;
 procedureName: ID ;
 
@@ -31,7 +34,7 @@ communication: expression '@' role '->' expression '@' role ;
 selection: role '->' role '[' label ']' ;
 
 assignment: variable '@' role '=' expression '@' role ;
-expression: CONSTANT
+expression: constant
           | variable
           | function
           ;
@@ -62,11 +65,8 @@ terminatingTerm: '[' role ',' role ']'
                ;
 
 
-ZERO : '0' ;
+INT : [0-9]+ ;
 WS : [ \t\r\n]+ -> skip ;
 COMMENT: '//' ~[\r\n]+ -> skip;
-CONSTANT : [0-9]+
-         | STRING
-         ;
 STRING : '"' ('""'|~'"')* '"' ;
 ID: [a-zA-Z]+ [0-9]* ; //catch variable, process e label

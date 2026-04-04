@@ -2,7 +2,9 @@ grammar FaaSChalCore;
 
 file: procedure* ;
 
-procedure: 'def' procedureName '(' procedureParameters? ')' '{' choreography '}';
+procedure: 'def' procedureName '(' procedureParameters? ')' (':' terminationOrder)? '{' choreography '}';
+terminationOrder: '(' orderingCouple (',' orderingCouple)? ')' ;
+orderingCouple: role '<:' role ;
 
 choreography: interaction (';' choreography)?
             | terminated

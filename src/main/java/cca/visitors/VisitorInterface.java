@@ -11,4 +11,6 @@ public interface VisitorInterface<R> {
 
     R visit(TerminationOrder n);
 
+    R visit(OrderingCouple n);
+
 }

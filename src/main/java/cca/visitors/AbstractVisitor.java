@@ -19,4 +19,9 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
     public T visit(TerminationOrder n) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public T visit(OrderingCouple n) {
+        throw new UnsupportedOperationException();
+    }
 }

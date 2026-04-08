@@ -1,7 +1,7 @@
 grammar FaaSChalCore;
 
 
-file: procedure* ;
+program: procedure* ;
 
 procedure: 'def' procedureName '(' procedureParameters? ')' (':' terminationOrder)? '{' choreography '}';
 terminationOrder: '(' orderingCouple (',' orderingCouple)? ')' ;

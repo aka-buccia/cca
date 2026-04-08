@@ -2,6 +2,7 @@ package cca.visitors;
 
 import cca.Program;
 import cca.Role;
+import cca.choreography.*;
 import cca.procedure.*;
 
 public interface VisitorInterface<R> {
@@ -13,6 +14,10 @@ public interface VisitorInterface<R> {
     R visit(TerminationOrder n);
 
     R visit(OrderingCouple n);
+
+    R visit(Choreography n);
+
+    R visit(Terminated n);
 
     R visit(Role n);
 

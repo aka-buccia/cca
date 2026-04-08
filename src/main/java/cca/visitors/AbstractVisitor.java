@@ -1,6 +1,7 @@
 package cca.visitors;
 
 import cca.Program;
+import cca.Role;
 import cca.procedure.*;
 
 public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
@@ -22,6 +23,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
 
     @Override
     public T visit(OrderingCouple n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T visit(Role n) {
         throw new UnsupportedOperationException();
     }
 }

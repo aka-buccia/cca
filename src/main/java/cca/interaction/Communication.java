@@ -1,6 +1,8 @@
 package cca.interaction;
 
 import cca.Role;
+import cca.Position;
+import cca.expression.*;
 import cca.visitors.VisitorInterface;
 
 public class Communication extends Interaction {

@@ -2,6 +2,7 @@ package cca.visitors;
 
 import cca.Program;
 import cca.Role;
+import cca.Variable;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.interaction.*;
@@ -45,6 +46,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
 
     @Override
     public T visit(Role n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T visit(Variable n) {
         throw new UnsupportedOperationException();
     }
 

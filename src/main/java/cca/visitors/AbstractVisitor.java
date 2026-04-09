@@ -4,6 +4,7 @@ import cca.Program;
 import cca.Role;
 import cca.procedure.*;
 import cca.choreography.*;
+import cca.interaction.*;
 
 public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
 
@@ -34,6 +35,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
 
     @Override
     public T visit(Terminated n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T visit(Communication n) {
         throw new UnsupportedOperationException();
     }
 

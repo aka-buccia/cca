@@ -45,6 +45,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
     }
 
     @Override
+    public T visit(Constant<? extends ConstantValue> n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public T visit(Role n) {
         throw new UnsupportedOperationException();
     }

@@ -2,7 +2,7 @@ package cca.visitors;
 
 import cca.Program;
 import cca.Role;
-import cca.Variable;
+import cca.expression.*;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.interaction.*;

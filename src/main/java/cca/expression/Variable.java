@@ -1,8 +1,9 @@
-package cca;
+package cca.expression;
 
+import cca.Position;
 import cca.visitors.VisitorInterface;
 
-public class Variable extends Node {
+public class Variable extends Expression {
 
     private final String id;
 

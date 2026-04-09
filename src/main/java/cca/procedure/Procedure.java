@@ -13,7 +13,6 @@ public class Procedure extends Node {
     private final List<ProcedureParameter> parameters;
     private final TerminationOrder terminationOrder;
     private final Choreography choreography;
-    private final Position position;
 
     public Procedure(
             String name,

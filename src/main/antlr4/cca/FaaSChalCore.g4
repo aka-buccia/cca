@@ -32,7 +32,7 @@ interaction: communication
           | procedureCall
           ;
 
-communication: expression '@' role '->' expression '@' role ;
+communication: expression '@' role '->' variable '@' role ;
 
 selection: role '->' role '[' label ']' ;
 

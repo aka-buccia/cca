@@ -2,6 +2,7 @@ package cca.procedure;
 
 import cca.Node;
 import cca.Position;
+import cca.Role;
 import cca.visitors.VisitorInterface;
 
 public class OrderingCouple extends Node {

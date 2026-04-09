@@ -1,25 +1,26 @@
 package cca.interaction;
 
 import cca.Role;
+
 import cca.Position;
 import cca.expression.*;
 import cca.visitors.VisitorInterface;
 
 public class Communication extends Interaction {
 
-    private final Expression leftExpression;
-    private final Expression rightExpression;
+    private final Expression expression;
+    private final Variable variable;
     private final Role leftRole;
     private final Role rightRole;
 
     public Communication(
-            Expression leftExpression,
+            Expression expression,
             Role leftRole,
-            Expression rightExpression,
+            Variable variable,
             Role rightRole,
             Position position) {
-        this.leftExpression = leftExpression;
-        this.rightExpression = rightExpression;
+        this.expression = expression;
+        this.variable = variable;
         this.leftRole = leftRole;
         this.rightRole = rightRole;
         super(position);

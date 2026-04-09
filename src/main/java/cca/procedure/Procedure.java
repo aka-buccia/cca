@@ -4,6 +4,7 @@ import java.util.List;
 
 import cca.Node;
 import cca.Position;
+import cca.choreography.*;
 import cca.visitors.VisitorInterface;
 
 public class Procedure extends Node {

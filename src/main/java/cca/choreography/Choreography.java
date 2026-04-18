@@ -2,6 +2,7 @@ package cca.choreography;
 
 import cca.Node;
 import cca.Position;
+import cca.interaction.*;
 import cca.visitors.VisitorInterface;
 import java.util.List;
 

@@ -55,11 +55,7 @@ endResponse: 'end' expression '@' role '->' role ;
 conditional: 'if' expression '@' role 'then' '{' choreography '}' 'else' '{' choreography '}' ;
 
 procedureCall: procedureName '(' procedureParameters? ')';
-procedureParameters: parameterList (',' parameterList)* ;
-parameterList: statefulParameters
-             | 'nonterm' nonterminatingParameters
-             | 'term' terminatingParameters
-             ;
+procedureParameters: statefulParameters? (',' 'nonterm' nonterminatingParameters)? (',' 'term' nonterminatingParameters)?;
 statefulParameters: role (',' role)* ;
 nonterminatingParameters: role (',' role)* ;
 terminatingParameters: terminatingTerm (',' terminatingTerm)* ;

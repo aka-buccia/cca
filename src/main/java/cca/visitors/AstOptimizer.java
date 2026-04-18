@@ -5,7 +5,9 @@ import cca.FaaSChalCoreParser;
 import cca.Node;
 import cca.Position;
 import cca.Program;
+import cca.Role;
 import cca.procedure.*;
+import cca.choreography.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +39,39 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
     @Override
     public Procedure visitProcedure(FaaSChalCoreParser.ProcedureContext ctx) {
 
+        String name = ctx.procedureName().getText();
+        // List<ProcedureParameter> parameters =
+        TerminationOrder terminationOrder = ifPresent(ctx.terminationOrder()).applyOrElse(this::vTerminationOrder,
+                null);
+        Choreography choreography = visitChoreography(ctx.choreography());
+
+        return new Procedure(name, parameters, terminationOrder, choreography, getPosition(ctx));
+
+    }
+
+    @Override
+    public TerminationOrder visitTerminationOrder(FaaSChalCoreParser.TerminationOrderContext ctx) {
+
+        List<OrderingCouple> elements = ctx.orderingCouple().stream().map(this::visitOrderingCouple)
+                .collect(Collectors.toList());
+
+        return new TerminationOrder(elements, getPosition(ctx));
+
+    }
+
+    @Override
+    public OrderingCouple visitOrderingCouple(FaaSChalCoreParser.OrderingCoupleContext ctx) {
+
+        Role left = visitRole(ctx.role().getFirst());
+        Role right = visitRole(ctx.role().getLast());
+
+        return new OrderingCouple(left, right, getPosition(ctx));
+    }
+
+    @Override
+    public Role visitRole(FaaSChalCoreParser.RoleContext ctx) {
+
+        return new Role(ctx.ID().getText(), getPosition(ctx));
     }
 
     // Method for extracting token position

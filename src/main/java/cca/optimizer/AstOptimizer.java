@@ -96,6 +96,19 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
         return new Variable(ctx.ID().getText(), getPosition(ctx));
     }
 
+    @Override
+    public Constant<? extends ConstantValue> visitConstant(FaaSChalCoreParser.ConstantContext ctx) {
+        if (ctx.INT() != null) {
+            int value = Integer.parseInt(ctx.INT().getText());
+            return Constant.ofInt(value, getPosition(ctx));
+        } else {
+            String value = ctx.STRING().getText();
+            // Rimuovi le virgolette se presenti
+            value = value.substring(1, value.length() - 1);
+            return Constant.ofString(value, getPosition(ctx));
+        }
+    }
+
     // ----- UTILITIES
 
     // Method for extracting token position

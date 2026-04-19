@@ -10,6 +10,7 @@ import cca.procedure.*;
 import cca.choreography.*;
 import cca.expression.*;
 import cca.interaction.*;
+import cca.exceptions.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
 
@@ -98,16 +100,24 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
 
     @Override
     public Constant<? extends ConstantValue> visitConstant(FaaSChalCoreParser.ConstantContext ctx) {
-        if (ctx.INT() != null) {
+        if (isPresent(ctx.INT())) {
             int value = Integer.parseInt(ctx.INT().getText());
             return Constant.ofInt(value, getPosition(ctx));
-        } else {
+        } else if (isPresent(ctx.STRING())) {
             String value = ctx.STRING().getText();
             // Rimuovi le virgolette se presenti
             value = value.substring(1, value.length() - 1);
             return Constant.ofString(value, getPosition(ctx));
+        } else {
+            throw new SyntaxException(getPosition(ctx), "Unrecognized constant: '" + ctx.getText() + "'");
         }
     }
+
+    // @Override
+    // public Interaction visitInteraction(FaaSChalCoreParser.InteractionContext
+    // ctx) {
+    //
+    // }
 
     // ----- UTILITIES
 
@@ -118,6 +128,14 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
 
     private Position getPosition(ParserRuleContext c) {
         return getPosition(c.getStart());
+    }
+
+    private boolean isPresent(ParserRuleContext p) {
+        return p != null && !p.isEmpty();
+    }
+
+    private boolean isPresent(TerminalNode p) {
+        return p != null;
     }
 
     // Personalized Optional wrapper

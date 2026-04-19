@@ -70,12 +70,6 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
     }
 
     @Override
-    public Role visitRole(FaaSChalCoreParser.RoleContext ctx) {
-
-        return new Role(ctx.ID().getText(), getPosition(ctx));
-    }
-
-    @Override
     public Choreography visitChoreography(FaaSChalCoreParser.ChoreographyContext ctx) {
 
         List<Interaction> interactions = ctx.interaction().stream().map(this::visitInteraction)
@@ -88,6 +82,12 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
     @Override
     public Terminated visitTerminated(FaaSChalCoreParser.TerminatedContext ctx) {
         return new Terminated(getPosition(ctx));
+    }
+
+    @Override
+    public Role visitRole(FaaSChalCoreParser.RoleContext ctx) {
+
+        return new Role(ctx.ID().getText(), getPosition(ctx));
     }
 
     // ----- UTILITIES

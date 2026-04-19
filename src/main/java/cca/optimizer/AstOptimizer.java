@@ -1,4 +1,4 @@
-package cca.visitors;
+package cca.optimizer;
 
 import cca.FaaSChalCoreBaseVisitor;
 import cca.FaaSChalCoreParser;
@@ -8,6 +8,7 @@ import cca.Program;
 import cca.Role;
 import cca.procedure.*;
 import cca.choreography.*;
+import cca.expression.*;
 import cca.interaction.*;
 
 import java.util.Collections;
@@ -88,6 +89,11 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
     public Role visitRole(FaaSChalCoreParser.RoleContext ctx) {
 
         return new Role(ctx.ID().getText(), getPosition(ctx));
+    }
+
+    @Override
+    public Variable visitVariable(FaaSChalCoreParser.VariableContext ctx) {
+        return new Variable(ctx.ID().getText(), getPosition(ctx));
     }
 
     // ----- UTILITIES

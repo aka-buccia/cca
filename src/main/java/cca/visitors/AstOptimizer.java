@@ -8,6 +8,7 @@ import cca.Program;
 import cca.Role;
 import cca.procedure.*;
 import cca.choreography.*;
+import cca.interaction.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,8 +41,8 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
     public Procedure visitProcedure(FaaSChalCoreParser.ProcedureContext ctx) {
 
         String name = ctx.procedureName().getText();
-        // List<ProcedureParameter> parameters =
-        TerminationOrder terminationOrder = ifPresent(ctx.terminationOrder()).applyOrElse(this::vTerminationOrder,
+        List<ProcedureParameter> parameters = Collections.emptyList(); // TODO implment ProcedureParameters
+        TerminationOrder terminationOrder = ifPresent(ctx.terminationOrder()).applyOrElse(this::visitTerminationOrder,
                 null);
         Choreography choreography = visitChoreography(ctx.choreography());
 
@@ -73,6 +74,23 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
 
         return new Role(ctx.ID().getText(), getPosition(ctx));
     }
+
+    @Override
+    public Choreography visitChoreography(FaaSChalCoreParser.ChoreographyContext ctx) {
+
+        List<Interaction> interactions = ctx.interaction().stream().map(this::visitInteraction)
+                .collect(Collectors.toList());
+        Terminated termination = ifPresent(ctx.terminated()).applyOrElse(this::visitTerminated, null);
+
+        return new Choreography(interactions, termination, getPosition(ctx));
+    }
+
+    @Override
+    public Terminated visitTerminated(FaaSChalCoreParser.TerminatedContext ctx) {
+        return new Terminated(getPosition(ctx));
+    }
+
+    // ----- UTILITIES
 
     // Method for extracting token position
     private Position getPosition(Token t) {

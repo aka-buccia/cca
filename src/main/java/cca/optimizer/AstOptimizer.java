@@ -99,15 +99,15 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
     }
 
     @Override
-    public Constant<? extends ConstantValue> visitConstant(FaaSChalCoreParser.ConstantContext ctx) {
+    public Constant<?> visitConstant(FaaSChalCoreParser.ConstantContext ctx) {
         if (isPresent(ctx.INT())) {
             int value = Integer.parseInt(ctx.INT().getText());
-            return Constant.ofInt(value, getPosition(ctx));
+            return new Constant.ConstantInt(value, getPosition(ctx));
         } else if (isPresent(ctx.STRING())) {
             String value = ctx.STRING().getText();
             // Rimuovi le virgolette se presenti
             value = value.substring(1, value.length() - 1);
-            return Constant.ofString(value, getPosition(ctx));
+            return new Constant.ConstantString(value, getPosition(ctx));
         } else {
             throw new SyntaxException(getPosition(ctx), "Unrecognized constant: '" + ctx.getText() + "'");
         }

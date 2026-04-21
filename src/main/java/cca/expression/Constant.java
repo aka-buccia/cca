@@ -3,7 +3,7 @@ package cca.expression;
 import cca.Position;
 import cca.visitors.VisitorInterface;
 
-public class Constant<T extends ConstantValue> extends Expression {
+public abstract class Constant<T> extends Expression {
 
     private final T value;
 
@@ -12,20 +12,36 @@ public class Constant<T extends ConstantValue> extends Expression {
         super(position);
     }
 
-    // Factory methods
-    public static Constant<StringValue> ofString(String s, Position position) {
-        return new Constant<>(new StringValue(s), position);
-    }
-
-    public static Constant<IntValue> ofInt(int i, Position position) {
-        return new Constant<>(new IntValue(i), position);
-    }
-
     public T value() {
-        return value;
+        return this.value;
     }
 
-    public <R> R accept(VisitorInterface<R> v) {
-        return v.visit(this);
+    public static class ConstantInt extends Constant<Integer> {
+
+        public ConstantInt(Integer value, Position position) {
+
+            super(value, position);
+        }
+
+        @Override
+        public <R> R accept(VisitorInterface<R> v) {
+            return v.visit(this);
+        }
+
     }
+
+    public static class ConstantString extends Constant<String> {
+
+        public ConstantString(String value, Position position) {
+
+            super(value, position);
+        }
+
+        @Override
+        public <R> R accept(VisitorInterface<R> v) {
+            return v.visit(this);
+        }
+
+    }
+
 }

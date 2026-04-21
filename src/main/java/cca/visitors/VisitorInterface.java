@@ -23,7 +23,7 @@ public interface VisitorInterface<R> {
 
     R visit(Communication n);
 
-    R visit(Constant<? extends ConstantValue> n);
+    R visit(Constant<?> n);
 
     R visit(Role n);
 

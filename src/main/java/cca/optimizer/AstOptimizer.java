@@ -126,6 +126,17 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
 
     }
 
+    @Override
+    public Communication visitCommunication(FaaSChalCoreParser.CommunicationContext ctx) {
+
+        Expression expression = visitExpression(ctx.expression());
+        Role leftRole = visitRole(ctx.role(0));
+        Variable variable = visitVariable(ctx.variable());
+        Role rightRole = visitRole(ctx.role(1));
+
+        return new Communication(expression, leftRole, variable, rightRole, getPosition(ctx));
+    }
+
     // ----- UTILITIES
 
     // Method for extracting token position

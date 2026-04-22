@@ -13,6 +13,10 @@ public class Program extends Node {
         this.procedures = procedures;
     }
 
+    public List<Procedure> procedures() {
+        return procedures;
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);

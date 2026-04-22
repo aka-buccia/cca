@@ -121,7 +121,7 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
             return visitCommunication(ctx.communication());
         } else {
             throw new SyntaxException(getPosition(ctx.communication()),
-                    "Unrecognized interaction: '" + ctx.communication().getText() + "'");
+                    "Unrecognized interaction: '" + ctx.getText() + "'");
         }
 
     }
@@ -135,6 +135,18 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
         Role rightRole = visitRole(ctx.role(1));
 
         return new Communication(expression, leftRole, variable, rightRole, getPosition(ctx));
+    }
+
+    @Override
+    public Expression visitExpression(FaaSChalCoreParser.ExpressionContext ctx) {
+
+        if (isPresent(ctx.constant())) {
+            return visitConstant(ctx.constant());
+        } else if (isPresent(ctx.variable())) {
+            return visitVariable(ctx.variable());
+        } else {
+            throw new SyntaxException(getPosition(ctx), "Unrecognized expression: '" + ctx.getText() + "'");
+        }
     }
 
     // ----- UTILITIES

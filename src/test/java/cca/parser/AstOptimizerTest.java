@@ -16,8 +16,19 @@ public class AstOptimizerTest {
 
     @Test
     public void parseEmptyProgramShouldReturnEmptyProcedureList() {
-        Program p = parseProgram("");
-        assertEquals(Collections.EMPTY_LIST, p.procedures());
+        Program program = parseProgram("");
+        assertEquals(Collections.EMPTY_LIST, program.procedures());
+    }
+
+    @Test
+    public void parseSimpleProcedureWithoutParams() {
+        Procedure procedure = parseProcedure("def ping() { 0 }");
+
+        assertEquals("ping", procedure.id());
+        assertEquals(Collections.EMPTY_LIST, procedure.parameters());
+        assertNull(procedure.terminationOrder());
+        assertNotNull(procedure.choreography());
+
     }
 
     // Helpers
@@ -35,9 +46,9 @@ public class AstOptimizerTest {
 
     // Helper: parsa una singola procedure
     private Procedure parseProcedure(String code) {
-        Program p = parseProgram(code);
-        assertEquals(1, p.procedures().size());
+        Program program = parseProgram(code);
+        assertEquals(1, program.procedures().size());
 
-        return p.procedures().getFirst();
+        return program.procedures().getFirst();
     }
 }

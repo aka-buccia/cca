@@ -7,7 +7,6 @@ import cca.Position;
 import cca.Program;
 import cca.Role;
 import cca.procedure.*;
-import sun.jvmstat.perfdata.monitor.SyntaxException;
 import cca.choreography.*;
 import cca.expression.*;
 import cca.interaction.*;

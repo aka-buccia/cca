@@ -28,6 +28,22 @@ public class Procedure extends Node {
 
     }
 
+    public String id() {
+        return this.name;
+    }
+
+    public List<ProcedureParameter> parameters() {
+        return this.parameters;
+    }
+
+    public TerminationOrder terminationOrder() {
+        return this.terminationOrder;
+    }
+
+    public Choreography choreography() {
+        return this.choreography;
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);

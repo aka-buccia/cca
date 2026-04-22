@@ -4,10 +4,10 @@ grammar FaaSChalCore;
 program: procedure* ;
 
 procedure: 'def' procedureName '(' procedureParameters? ')' (':' terminationOrder)? '{' choreography '}';
-terminationOrder: '(' orderingCouple (',' orderingCouple)? ')' ;
+terminationOrder: '(' orderingCouple (',' orderingCouple)* ')' ;
 orderingCouple: role '<:' role ;
 
-choreography: interaction (';' choreography)?
+choreography: interaction (';' interaction)* (';' terminated)?
             | terminated
             ;
 

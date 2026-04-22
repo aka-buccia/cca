@@ -7,6 +7,7 @@ import cca.Position;
 import cca.Program;
 import cca.Role;
 import cca.procedure.*;
+import sun.jvmstat.perfdata.monitor.SyntaxException;
 import cca.choreography.*;
 import cca.expression.*;
 import cca.interaction.*;
@@ -113,11 +114,17 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
         }
     }
 
-    // @Override
-    // public Interaction visitInteraction(FaaSChalCoreParser.InteractionContext
-    // ctx) {
-    //
-    // }
+    @Override
+    public Interaction visitInteraction(FaaSChalCoreParser.InteractionContext ctx) {
+
+        if (isPresent(ctx.communication())) {
+            return visitCommunication(ctx.communication());
+        } else {
+            throw new SyntaxException(getPosition(ctx.communication()),
+                    "Unrecognized interaction: '" + ctx.communication().getText() + "'");
+        }
+
+    }
 
     // ----- UTILITIES
 

@@ -22,6 +22,7 @@ public abstract class Node {
         this.position = position;
     }
 
+    @SuppressWarnings("unchecked")
     public <R extends Node> R copyPosition(Node n) {
         this.position = n.position;
         return (R) this;

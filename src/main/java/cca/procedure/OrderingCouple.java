@@ -16,6 +16,24 @@ public class OrderingCouple extends Node {
         super(position);
     }
 
+    public Role left() {
+        return this.left;
+    }
+
+    public Role right() {
+        return this.right;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o instanceof OrderingCouple) {
+            return this.left.equals(((OrderingCouple) o).left())
+                    & this.right.equals(((OrderingCouple) o).right());
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);

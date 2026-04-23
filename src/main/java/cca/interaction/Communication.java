@@ -33,6 +33,10 @@ public class Communication extends Interaction {
         return this.leftRole;
     }
 
+    public Variable variable() {
+        return this.variable;
+    }
+
     public Role rightRole() {
         return this.rightRole;
     }

@@ -13,4 +13,13 @@ public class Terminated extends Node {
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);
     }
+
+    // Placeholder node for implicit termination
+    public static class TerminatedOmitted extends Terminated {
+
+        public TerminatedOmitted(Position position) {
+            super(position);
+        }
+
+    }
 }

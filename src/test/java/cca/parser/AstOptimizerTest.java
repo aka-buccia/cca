@@ -26,7 +26,7 @@ public class AstOptimizerTest {
 
         assertEquals("ping", procedure.id());
         assertEquals(Collections.EMPTY_LIST, procedure.parameters());
-        assertNull(procedure.terminationOrder());
+        assertInstanceOf(TerminationOrder.TerminationOrderDefault.class, procedure.terminationOrder());
         assertNotNull(procedure.choreography());
 
     }

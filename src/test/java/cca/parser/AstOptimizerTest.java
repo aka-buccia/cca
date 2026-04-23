@@ -2,7 +2,9 @@ package cca.parser;
 
 import cca.FaaSChalCoreLexer;
 import cca.FaaSChalCoreParser;
+import cca.Position;
 import cca.Program;
+import cca.Role;
 import cca.procedure.*;
 import org.junit.jupiter.api.Test;
 import cca.optimizer.AstOptimizer;
@@ -10,9 +12,12 @@ import org.antlr.v4.runtime.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.Collections;
 
 public class AstOptimizerTest {
+
+    private static final Position emptyPosition = new Position(null, -1, -1); // position placeholder for testing node
 
     @Test
     public void parseEmptyProgramShouldReturnEmptyProcedureList() {
@@ -31,7 +36,31 @@ public class AstOptimizerTest {
 
     }
 
+    @Test
+    public void parseSimpleProcedureWithTerminationOrder() {
+        Procedure procedure = parseProcedure("def ping(): (a <: b, b <: c) {0}");
+
+        assertInstanceOf(List.class, procedure.terminationOrder().elements());
+        OrderingCouple firstCouple = procedure.terminationOrder().elements().get(0);
+        OrderingCouple secondCouple = procedure.terminationOrder().elements().get(1);
+
+        assertEquals(createOrderingCouple("a", "b"), firstCouple);
+        assertEquals(createOrderingCouple("b", "c"), secondCouple);
+
+    }
+
     // Helpers
+
+    private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {
+        Role leftRole = new Role(leftRoleName, emptyPosition);
+        Role rightRole = new Role(rightRoleName, emptyPosition);
+
+        return new OrderingCouple(leftRole, rightRole, emptyPosition());
+    }
+
+    private Position emptyPosition() {
+        return new Position(null, -1, -1);
+    }
 
     private Program parseProgram(String code) {
         CharStream input = CharStreams.fromString(code);

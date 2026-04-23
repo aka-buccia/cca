@@ -21,6 +21,15 @@ public class Role extends Node {
     }
 
     @Override
+    public boolean equals(final Object o) {
+        if (o instanceof Role) {
+            return this.id.equals(((Role) o).id());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public String toString() {
         return id();
     }

@@ -12,6 +12,10 @@ public class Variable extends Expression {
         super(position);
     }
 
+    public String id() {
+        return this.id;
+    }
+
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);
     }

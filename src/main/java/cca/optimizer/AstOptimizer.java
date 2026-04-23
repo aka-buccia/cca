@@ -42,11 +42,12 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
 
     @Override
     public Procedure visitProcedure(FaaSChalCoreParser.ProcedureContext ctx) {
-
         String name = ctx.procedureName().getText();
+
         List<ProcedureParameter> parameters = Collections.emptyList(); // TODO implment ProcedureParameters
-        TerminationOrder terminationOrder = ifPresent(ctx.terminationOrder()).applyOrElse(this::visitTerminationOrder,
-                null);
+        TerminationOrder terminationOrder = isPresent(ctx.terminationOrder())
+                ? visitTerminationOrder(ctx.terminationOrder())
+                : new TerminationOrder.TerminationOrderDefault(getPosition(ctx)); // TODO needs an accurate position
         Choreography choreography = visitChoreography(ctx.choreography());
 
         return new Procedure(name, parameters, terminationOrder, choreography, getPosition(ctx));
@@ -77,7 +78,8 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
 
         List<Interaction> interactions = ctx.interaction().stream().map(this::visitInteraction)
                 .collect(Collectors.toList());
-        Terminated termination = ifPresent(ctx.terminated()).applyOrElse(this::visitTerminated, null);
+        Terminated termination = isPresent(ctx.terminated()) ? visitTerminated(ctx.terminated())
+                : new Terminated.TerminatedOmitted(getPosition(ctx.getStop()));
 
         return new Choreography(interactions, termination, getPosition(ctx));
     }

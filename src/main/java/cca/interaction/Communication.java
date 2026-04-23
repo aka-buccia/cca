@@ -25,6 +25,10 @@ public class Communication extends Interaction {
         super(position);
     }
 
+    public Expression expression() {
+        return this.expression;
+    }
+
     public Role leftRole() {
         return this.leftRole;
     }

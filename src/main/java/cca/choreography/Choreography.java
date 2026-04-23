@@ -17,6 +17,10 @@ public class Choreography extends Node {
         super(position);
     }
 
+    public List<Interaction> interactions() {
+        return this.interactions;
+    }
+
     public Terminated termination() {
         return this.termination;
     }

@@ -6,10 +6,12 @@ import cca.Position;
 import cca.Program;
 import cca.Role;
 import cca.procedure.*;
-import org.junit.jupiter.api.Test;
+import cca.choreography.*;
 import cca.optimizer.AstOptimizer;
+
 import org.antlr.v4.runtime.*;
 
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -49,6 +51,18 @@ public class AstOptimizerTest {
 
     }
 
+    @Test
+    public void parseChoreographyWithOnlyTermination() {
+        Choreography choreography = parseChoreography("0");
+        assertInstanceOf(Terminated.class, choreography.termination());
+    }
+
+    @Test
+    public void parseChoreographyWithoutTermination() {
+        Choreography choreography = parseChoreography("42@a -> x@b");
+        assertInstanceOf(Terminated.TerminatedOmitted.class, choreography.termination());
+    }
+
     // Helpers
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {
@@ -79,5 +93,13 @@ public class AstOptimizerTest {
         assertEquals(1, program.procedures().size());
 
         return program.procedures().getFirst();
+    }
+
+    private Choreography parseChoreography(String code) {
+        String procedureCode = "def procedureWrapper() {" + code + "}"; // wraps choreography code inside a procedure
+        Procedure procedure = parseProcedure(procedureCode);
+
+        return procedure.choreography();
+
     }
 }

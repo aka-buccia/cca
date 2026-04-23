@@ -25,6 +25,14 @@ public class Communication extends Interaction {
         super(position);
     }
 
+    public Role leftRole() {
+        return this.leftRole;
+    }
+
+    public Role rightRole() {
+        return this.rightRole;
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);

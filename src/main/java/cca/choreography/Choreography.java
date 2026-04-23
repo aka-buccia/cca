@@ -17,6 +17,10 @@ public class Choreography extends Node {
         super(position);
     }
 
+    public Terminated termination() {
+        return this.termination;
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);

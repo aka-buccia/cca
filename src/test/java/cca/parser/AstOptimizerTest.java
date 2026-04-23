@@ -7,6 +7,8 @@ import cca.Program;
 import cca.Role;
 import cca.procedure.*;
 import cca.choreography.*;
+import cca.interaction.*;
+import cca.expression.*;
 import cca.optimizer.AstOptimizer;
 
 import org.antlr.v4.runtime.*;
@@ -61,6 +63,29 @@ public class AstOptimizerTest {
     public void parseChoreographyWithoutTermination() {
         Choreography choreography = parseChoreography("42@a -> x@b");
         assertInstanceOf(Terminated.TerminatedOmitted.class, choreography.termination());
+    }
+
+    @Test
+    public void parseSimpleCommunication() {
+        Choreography choreography = parseChoreography("42@a -> x@b");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(Communication.class, choreography.interactions().getFirst());
+
+        Communication communication = (Communication) choreography.interactions().getFirst();
+
+        assertEquals(new Role("a", emptyPosition), communication.leftRole());
+        assertEquals(new Role("b", emptyPosition), communication.rightRole());
+
+    }
+
+    @Test
+    public void parseConstantExpression() {
+        Choreography choreography = parseChoreography("42@a -> x@b");
+        Communication communication = (Communication) choreography.interactions().getFirst();
+
+        assertEquals(new Constant("a", emptyPosition), communication.leftRole());
+
     }
 
     // Helpers

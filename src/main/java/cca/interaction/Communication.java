@@ -8,8 +8,8 @@ import cca.visitors.VisitorInterface;
 public class Communication extends Interaction {
 
     private final Expression expression;
-    private final Variable variable;
     private final Role leftRole;
+    private final Variable variable;
     private final Role rightRole;
 
     public Communication(
@@ -19,8 +19,8 @@ public class Communication extends Interaction {
             Role rightRole,
             Position position) {
         this.expression = expression;
-        this.variable = variable;
         this.leftRole = leftRole;
+        this.variable = variable;
         this.rightRole = rightRole;
         super(position);
     }

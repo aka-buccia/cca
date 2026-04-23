@@ -69,7 +69,7 @@ public class AstOptimizerTest {
     }
 
     @Test
-    public void parseSimpleCommunication() {
+    public void parseCommunication() {
         Choreography choreography = parseChoreography("42@a -> x@b");
 
         assertEquals(1, choreography.interactions().size());
@@ -80,6 +80,30 @@ public class AstOptimizerTest {
         assertEquals(new Role("a", emptyPosition), communication.leftRole());
         assertEquals(new Role("b", emptyPosition), communication.rightRole());
 
+    }
+
+    @Test
+    public void parseConstantInteger() {
+        Choreography choreography = parseChoreography("42@a -> x@b");
+        Communication communication = (Communication) choreography.interactions().getFirst();
+
+        assertInstanceOf(Constant.ConstantInt.class, communication.expression());
+
+        Constant constant = (Constant.ConstantInt) communication.expression();
+
+        assertEquals(42, constant.value());
+    }
+
+    @Test
+    public void parseConstantString() {
+        Choreography choreography = parseChoreography("\"hi\"@a -> x@b");
+        Communication communication = (Communication) choreography.interactions().getFirst();
+
+        assertInstanceOf(Constant.ConstantString.class, communication.expression());
+
+        Constant constant = (Constant.ConstantString) communication.expression();
+
+        assertEquals("hi", constant.value());
     }
 
     // Helpers

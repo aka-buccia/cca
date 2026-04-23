@@ -89,7 +89,7 @@ public class AstOptimizerTest {
 
         assertInstanceOf(Constant.ConstantInt.class, communication.expression());
 
-        Constant constant = (Constant.ConstantInt) communication.expression();
+        Constant<Integer> constant = (Constant.ConstantInt) communication.expression();
 
         assertEquals(42, constant.value());
     }
@@ -101,7 +101,7 @@ public class AstOptimizerTest {
 
         assertInstanceOf(Constant.ConstantString.class, communication.expression());
 
-        Constant constant = (Constant.ConstantString) communication.expression();
+        Constant<String> constant = (Constant.ConstantString) communication.expression();
 
         assertEquals("hi", constant.value());
     }

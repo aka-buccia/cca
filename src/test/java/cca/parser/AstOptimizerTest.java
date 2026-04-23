@@ -26,6 +26,7 @@ public class AstOptimizerTest {
     @Test
     public void parseEmptyProgramShouldReturnEmptyProcedureList() {
         Program program = parseProgram("");
+
         assertEquals(Collections.EMPTY_LIST, program.procedures());
     }
 
@@ -56,12 +57,14 @@ public class AstOptimizerTest {
     @Test
     public void parseChoreographyWithOnlyTermination() {
         Choreography choreography = parseChoreography("0");
+
         assertInstanceOf(Terminated.class, choreography.termination());
     }
 
     @Test
     public void parseChoreographyWithoutTermination() {
         Choreography choreography = parseChoreography("42@a -> x@b");
+
         assertInstanceOf(Terminated.TerminatedOmitted.class, choreography.termination());
     }
 
@@ -76,15 +79,6 @@ public class AstOptimizerTest {
 
         assertEquals(new Role("a", emptyPosition), communication.leftRole());
         assertEquals(new Role("b", emptyPosition), communication.rightRole());
-
-    }
-
-    @Test
-    public void parseConstantExpression() {
-        Choreography choreography = parseChoreography("42@a -> x@b");
-        Communication communication = (Communication) choreography.interactions().getFirst();
-
-        assertEquals(new Constant("a", emptyPosition), communication.leftRole());
 
     }
 

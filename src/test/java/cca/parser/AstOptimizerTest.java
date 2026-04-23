@@ -106,6 +106,18 @@ public class AstOptimizerTest {
         assertEquals("hi", constant.value());
     }
 
+    @Test
+    public void parseVariable() {
+        Choreography choreography = parseChoreography("42@a -> x@b");
+        Communication communication = (Communication) choreography.interactions().getFirst();
+
+        assertInstanceOf(Variable.class, communication.variable());
+
+        Variable variable = communication.variable();
+
+        assertEquals("x", variable.id());
+    }
+
     // Helpers
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {

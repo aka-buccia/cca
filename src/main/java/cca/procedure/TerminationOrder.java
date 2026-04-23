@@ -3,6 +3,8 @@ package cca.procedure;
 import cca.Node;
 import cca.Position;
 import cca.visitors.VisitorInterface;
+
+import java.util.Collections;
 import java.util.List;
 
 public class TerminationOrder extends Node {
@@ -14,9 +16,21 @@ public class TerminationOrder extends Node {
         super(position);
     }
 
+    public List<OrderingCouple> elements() {
+        return this.elements;
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);
+    }
+
+    // Placeholder node for missing TerminationOrder
+    public static class TerminationOrderDefault extends TerminationOrder {
+
+        public TerminationOrderDefault(Position position) {
+            super(Collections.emptyList(), position);
+        }
     }
 
 }

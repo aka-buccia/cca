@@ -38,7 +38,6 @@ public class AstOptimizerTest {
         assertEquals(Collections.EMPTY_LIST, procedure.parameters());
         assertInstanceOf(TerminationOrder.TerminationOrderDefault.class, procedure.terminationOrder());
         assertNotNull(procedure.choreography());
-
     }
 
     @Test
@@ -51,7 +50,6 @@ public class AstOptimizerTest {
 
         assertEquals(createOrderingCouple("a", "b"), firstCouple);
         assertEquals(createOrderingCouple("b", "c"), secondCouple);
-
     }
 
     @Test
@@ -79,7 +77,6 @@ public class AstOptimizerTest {
 
         assertEquals(new Role("a", emptyPosition), communication.leftRole());
         assertEquals(new Role("b", emptyPosition), communication.rightRole());
-
     }
 
     @Test

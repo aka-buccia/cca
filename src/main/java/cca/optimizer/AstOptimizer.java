@@ -145,9 +145,20 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
             return visitConstant(ctx.constant());
         } else if (isPresent(ctx.variable())) {
             return visitVariable(ctx.variable());
+        } else if (isPresent(ctx.function())) {
+            return visitFunction(ctx.function());
         } else {
             throw new SyntaxException(getPosition(ctx), "Unrecognized expression: '" + ctx.getText() + "'");
         }
+    }
+
+    @Override
+    public LocalFunction visitFunction(FaaSChalCoreParser.FunctionContext ctx) {
+
+        String id = ctx.ID().getText();
+        List<Expression> parameters = Collections.emptyList();
+
+        return new LocalFunction(id, parameters, getPosition(ctx));
     }
 
     // ----- UTILITIES

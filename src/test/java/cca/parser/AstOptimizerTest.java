@@ -115,7 +115,19 @@ public class AstOptimizerTest {
         assertEquals("x", variable.id());
     }
 
-    // Helpers
+    @Test
+    public void parseLocalFunctionCallWithoutParameters() {
+        Choreography choreography = parseChoreography("order()@a -> x@b");
+        Communication communication = (Communication) choreography.interactions().getFirst();
+
+        assertInstanceOf(LocalFunction.class, communication.expression());
+
+        LocalFunction function = (LocalFunction) communication.expression();
+
+        assertEquals("order", function.id());
+    }
+
+    // HELPERS
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {
         Role leftRole = new Role(leftRoleName, emptyPosition);

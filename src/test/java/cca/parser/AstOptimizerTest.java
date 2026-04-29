@@ -125,6 +125,22 @@ public class AstOptimizerTest {
         LocalFunction function = (LocalFunction) communication.expression();
 
         assertEquals("order", function.id());
+        assertEquals(Collections.EMPTY_LIST, function.parameters());
+    }
+
+    @Test
+    public void parseLocalFunctionCallWithFunctionParameters() {
+        Choreography choreography = parseChoreography("order(\"first\", 2)@a -> x@b");
+        Communication communication = (Communication) choreography.interactions().getFirst();
+        LocalFunction function = (LocalFunction) communication.expression();
+
+        assertInstanceOf(List.class, function.parameters());
+
+        List<Expression> parameters = function.parameters();
+
+        assertEquals("first", parameters.get(0));
+        assertEquals(2, parameters.get(1));
+
     }
 
     // HELPERS

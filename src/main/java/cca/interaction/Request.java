@@ -4,6 +4,7 @@ import cca.expression.*;
 import cca.Position;
 import cca.visitors.VisitorInterface;
 import cca.Role;
+import cca.Media;
 
 public class Request extends Interaction {
 

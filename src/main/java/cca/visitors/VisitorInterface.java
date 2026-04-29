@@ -2,6 +2,7 @@ package cca.visitors;
 
 import cca.Program;
 import cca.Role;
+import cca.Media;
 import cca.expression.*;
 import cca.choreography.*;
 import cca.interaction.*;
@@ -23,11 +24,15 @@ public interface VisitorInterface<R> {
 
     R visit(Communication n);
 
+    R visit(Request n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);
 
     R visit(Role n);
+
+    R visit(Media n);
 
     R visit(Variable n);
 

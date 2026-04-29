@@ -26,6 +26,22 @@ public class Request extends Interaction {
         super(position);
     }
 
+    public Expression sourceExpression() {
+        return this.sourceExpression;
+    }
+
+    public Role sourceRole() {
+        return this.sourceRole;
+    }
+
+    public Variable targetVariable() {
+        return this.targetVariable;
+    }
+
+    public Role targetRole() {
+        return this.targetRole;
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);

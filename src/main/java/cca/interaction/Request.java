@@ -34,6 +34,10 @@ public class Request extends Interaction {
         return this.sourceRole;
     }
 
+    public Media media() {
+        return this.media;
+    }
+
     public Variable targetVariable() {
         return this.targetVariable;
     }

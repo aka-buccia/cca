@@ -2,6 +2,22 @@ package cca.optimizer;
 
 import cca.FaaSChalCoreVisitor;
 import cca.FaaSChalCoreParser;
+import cca.FaaSChalCoreParser.AssignmentContext;
+import cca.FaaSChalCoreParser.ConditionalContext;
+import cca.FaaSChalCoreParser.EndContext;
+import cca.FaaSChalCoreParser.EndResponseContext;
+import cca.FaaSChalCoreParser.LabelContext;
+import cca.FaaSChalCoreParser.MediaContext;
+import cca.FaaSChalCoreParser.NonterminatingParametersContext;
+import cca.FaaSChalCoreParser.ProcedureCallContext;
+import cca.FaaSChalCoreParser.ProcedureNameContext;
+import cca.FaaSChalCoreParser.ProcedureParametersContext;
+import cca.FaaSChalCoreParser.RequestContext;
+import cca.FaaSChalCoreParser.RequestResponseContext;
+import cca.FaaSChalCoreParser.SelectionContext;
+import cca.FaaSChalCoreParser.StatefulParametersContext;
+import cca.FaaSChalCoreParser.TerminatingParametersContext;
+import cca.FaaSChalCoreParser.TerminatingTermContext;
 import cca.Node;
 import cca.Position;
 import cca.Program;
@@ -18,9 +34,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.text.ParseException;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class AstOptimizer implements FaaSChalCoreVisitor {
@@ -168,6 +188,127 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         List<Expression> parameters = ctx.expression().stream().map(this::visitExpression).collect(Collectors.toList());
 
         return parameters;
+    }
+
+    @Override
+    public Object visitErrorNode(ErrorNode errorNode) {
+        new ParseException("Parsing Error " + errorNode.getText(), errorNode.getSourceInterval().a).printStackTrace();
+        return null;
+    }
+
+    // Interface methods not implemented
+
+    @Override
+    public Object visitProcedureParameters(ProcedureParametersContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitRequest(RequestContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitAssignment(AssignmentContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitConditional(ConditionalContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitEnd(EndContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitEndResponse(EndResponseContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitLabel(LabelContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitMedia(MediaContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitNonterminatingParameters(NonterminatingParametersContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitProcedureCall(ProcedureCallContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitProcedureName(ProcedureNameContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitRequestResponse(RequestResponseContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitSelection(SelectionContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitStatefulParameters(StatefulParametersContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitTerminatingParameters(TerminatingParametersContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Object visitTerminatingTerm(TerminatingTermContext ctx) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    // Interface methods that shouldn't be used by AstOptimizer
+
+    @Override
+    public Node visit(ParseTree parseTree) {
+        throw new UnsupportedOperationException("The AstOptimizer should not visit the ParseTree");
+    }
+
+    @Override
+    public Object visitChildren(RuleNode ruleNode) {
+        throw new UnsupportedOperationException("The AstOptimizer should not visit nodes as generic RuleNodes");
+    }
+
+    @Override
+    public Object visitTerminal(TerminalNode terminalNode) {
+        throw new UnsupportedOperationException("The AstOptimizer should not visit TerminalNodes");
     }
 
     // ----- UTILITIES

@@ -1,6 +1,6 @@
 package cca.optimizer;
 
-import cca.FaaSChalCoreBaseVisitor;
+import cca.FaaSChalCoreVisitor;
 import cca.FaaSChalCoreParser;
 import cca.Node;
 import cca.Position;
@@ -23,7 +23,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
+public class AstOptimizer implements FaaSChalCoreVisitor {
 
     private String file = "";
 

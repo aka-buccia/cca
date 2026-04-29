@@ -11,6 +11,19 @@ public class Media extends Node {
         super(position);
     }
 
+    public String id() {
+        return this.id;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o instanceof Media) {
+            return this.id.equals(((Media) o).id());
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public <R> R accept(VisitorInterface<R> v) {
         return v.visit(this);

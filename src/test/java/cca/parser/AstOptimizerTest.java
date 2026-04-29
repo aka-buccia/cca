@@ -138,8 +138,8 @@ public class AstOptimizerTest {
 
         List<Expression> parameters = function.parameters();
 
-        assertEquals("first", parameters.get(0));
-        assertEquals(2, parameters.get(1));
+        assertEquals("first", ((Constant<String>) parameters.get(0)).value());
+        assertEquals(2, ((Constant<Integer>) parameters.get(1)).value());
 
     }
 

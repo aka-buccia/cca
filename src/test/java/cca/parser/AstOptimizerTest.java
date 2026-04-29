@@ -5,6 +5,7 @@ import cca.FaaSChalCoreParser;
 import cca.Position;
 import cca.Program;
 import cca.Role;
+import cca.Media;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.interaction.*;
@@ -141,6 +142,20 @@ public class AstOptimizerTest {
         assertEquals("first", ((Constant<String>) parameters.get(0)).value());
         assertEquals(2, ((Constant<Integer>) parameters.get(1)).value());
 
+    }
+
+    @Test
+    public void parseRequest() {
+        Choreography choreography = parseChoreography("title@a -M-> x@b");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(Request.class, choreography.interactions().getFirst());
+
+        Request request = (Request) choreography.interactions().getFirst();
+
+        assertEquals(new Role("a", emptyPosition), request.sourceRole());
+        assertEquals(new Media("M", emptyPosition), request.media());
+        assertEquals(new Role("b", emptyPosition), request.targetRole());
     }
 
     // HELPERS

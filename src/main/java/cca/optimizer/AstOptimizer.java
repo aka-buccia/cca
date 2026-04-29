@@ -156,9 +156,18 @@ public class AstOptimizer extends FaaSChalCoreBaseVisitor<Node> {
     public LocalFunction visitFunction(FaaSChalCoreParser.FunctionContext ctx) {
 
         String id = ctx.ID().getText();
-        List<Expression> parameters = Collections.emptyList();
+        List<Expression> parameters = ifPresent(ctx.functionParameters()).applyOrElse(this::visitFunctionParameters,
+                Collections::emptyList);
 
         return new LocalFunction(id, parameters, getPosition(ctx));
+    }
+
+    @Override
+    public List<Expression> visitFunctionParameters(FaaSChalCoreParser.FunctionParametersContext ctx) {
+
+        List<Expression> parameters = ctx.expression().stream().map(this::visitExpression).collect(Collectors.toList());
+
+        return parameters;
     }
 
     // ----- UTILITIES

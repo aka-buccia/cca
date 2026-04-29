@@ -7,12 +7,10 @@ import cca.FaaSChalCoreParser.ConditionalContext;
 import cca.FaaSChalCoreParser.EndContext;
 import cca.FaaSChalCoreParser.EndResponseContext;
 import cca.FaaSChalCoreParser.LabelContext;
-import cca.FaaSChalCoreParser.MediaContext;
 import cca.FaaSChalCoreParser.NonterminatingParametersContext;
 import cca.FaaSChalCoreParser.ProcedureCallContext;
 import cca.FaaSChalCoreParser.ProcedureNameContext;
 import cca.FaaSChalCoreParser.ProcedureParametersContext;
-import cca.FaaSChalCoreParser.RequestContext;
 import cca.FaaSChalCoreParser.RequestResponseContext;
 import cca.FaaSChalCoreParser.SelectionContext;
 import cca.FaaSChalCoreParser.StatefulParametersContext;
@@ -22,6 +20,7 @@ import cca.Node;
 import cca.Position;
 import cca.Program;
 import cca.Role;
+import cca.Media;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.expression.*;
@@ -140,6 +139,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
         if (isPresent(ctx.communication())) {
             return visitCommunication(ctx.communication());
+        } else if (isPresent(ctx.request())) {
+            return visitRequest(ctx.request());
         } else {
             throw new SyntaxException(getPosition(ctx.communication()),
                     "Unrecognized interaction: '" + ctx.getText() + "'");
@@ -191,6 +192,25 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
+    public Request visitRequest(FaaSChalCoreParser.RequestContext ctx) {
+
+        Expression sourceExpression = visitExpression(ctx.expression());
+        Role sourceRole = visitRole(ctx.role(0));
+        Media media = visitMedia(ctx.media());
+        Variable targetVariable = visitVariable(ctx.variable());
+        Role targetRole = visitRole(ctx.role(1));
+
+        return new Request(sourceExpression, sourceRole, media, targetVariable, targetRole, getPosition(ctx));
+
+    }
+
+    @Override
+    public Media visitMedia(FaaSChalCoreParser.MediaContext ctx) {
+        String id = ctx.ID().getText();
+        return new Media(id, getPosition(ctx));
+    }
+
+    @Override
     public Object visitErrorNode(ErrorNode errorNode) {
         new ParseException("Parsing Error " + errorNode.getText(), errorNode.getSourceInterval().a).printStackTrace();
         return null;
@@ -200,12 +220,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Object visitProcedureParameters(ProcedureParametersContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitRequest(RequestContext ctx) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -236,12 +250,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Object visitLabel(LabelContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitMedia(MediaContext ctx) {
         // TODO Auto-generated method stub
         return null;
     }

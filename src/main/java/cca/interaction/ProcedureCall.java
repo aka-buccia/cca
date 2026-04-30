@@ -1,12 +1,12 @@
-package cca.procedure;
+package cca.interaction;
 
 import java.util.List;
 
-import cca.Node;
 import cca.Position;
 import cca.visitors.VisitorInterface;
+import cca.procedure.ProcedureParameter;
 
-public class ProcedureCall extends Node {
+public class ProcedureCall extends Interaction {
 
     private final String name;
     private final List<ProcedureParameter> parameters;

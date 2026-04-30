@@ -155,7 +155,9 @@ public class AstOptimizerTest {
         Request request = (Request) choreography.interactions().getFirst();
 
         assertEquals(new Role("a", emptyPosition), request.sourceRole());
+        assertInstanceOf(Expression.class, request.sourceExpression());
         assertEquals(new Media("M", emptyPosition), request.media());
+        assertEquals(new Variable("x", emptyPosition), request.targetVariable());
         assertEquals(new Role("b", emptyPosition), request.targetRole());
     }
 
@@ -185,6 +187,23 @@ public class AstOptimizerTest {
         assertEquals(new Role("n", emptyPosition), request.targetRole());
         assertEquals(new Variable("x", emptyPosition), request.variable());
         assertInstanceOf(Expression.class, request.expression());
+    }
+
+    @Test
+    public void parseRequestResponse() {
+        Choreography choreography = parseChoreography("title@a -M-> x@b |> y@a");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(RequestResponse.class, choreography.interactions().getFirst());
+
+        RequestResponse requestResponse = (RequestResponse) choreography.interactions().getFirst();
+
+        assertEquals(new Role("a", emptyPosition), requestResponse.sourceRole());
+        assertInstanceOf(Expression.class, requestResponse.sourceExpression());
+        assertEquals(new Media("M", emptyPosition), requestResponse.media());
+        assertEquals(new Variable("x", emptyPosition), requestResponse.targetVariable());
+        assertEquals(new Role("b", emptyPosition), requestResponse.targetRole());
+        assertEquals(new Variable("y", emptyPosition), requestResponse.sourceVariable());
     }
 
     // HELPERS

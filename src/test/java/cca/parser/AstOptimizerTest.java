@@ -256,6 +256,19 @@ public class AstOptimizerTest {
         assertInstanceOf(Assignment.class, choreography.interactions().getLast());
     }
 
+    @Test
+    public void parseProcedureCallWithoutParams() {
+        Choreography choreography = parseChoreography("X()");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(ProcedureCall.class, choreography.interactions().getFirst());
+
+        ProcedureCall procedureCall = (ProcedureCall) choreography.interactions().getFirst();
+
+        assertEquals("X", procedureCall.name());
+        assertEquals(Collections.EMPTY_LIST, procedureCall.parameters());
+    }
+
     // HELPERS
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {

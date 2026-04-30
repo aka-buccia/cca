@@ -31,6 +31,8 @@ public interface VisitorInterface<R> {
 
     R visit(Assignment n);
 
+    R visit(End n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

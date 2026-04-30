@@ -28,6 +28,8 @@ public interface VisitorInterface<R> {
 
     R visit(Selection n);
 
+    R visit(Assignment n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

@@ -3,13 +3,11 @@ package cca.optimizer;
 import cca.FaaSChalCoreVisitor;
 import cca.FaaSChalCoreParser;
 import cca.FaaSChalCoreParser.ConditionalContext;
-import cca.FaaSChalCoreParser.EndContext;
 import cca.FaaSChalCoreParser.EndResponseContext;
 import cca.FaaSChalCoreParser.NonterminatingParametersContext;
 import cca.FaaSChalCoreParser.ProcedureCallContext;
 import cca.FaaSChalCoreParser.ProcedureNameContext;
 import cca.FaaSChalCoreParser.ProcedureParametersContext;
-import cca.FaaSChalCoreParser.RequestResponseContext;
 import cca.FaaSChalCoreParser.StatefulParametersContext;
 import cca.FaaSChalCoreParser.TerminatingParametersContext;
 import cca.FaaSChalCoreParser.TerminatingTermContext;
@@ -145,6 +143,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
             return visitAssignment(ctx.assignment());
         } else if (isPresent(ctx.requestResponse())) {
             return visitRequestResponse(ctx.requestResponse());
+        } else if (isPresent(ctx.end())) {
+            return visitEnd(ctx.end());
         } else {
             throw new SyntaxException(getPosition(ctx),
                     "Unrecognized interaction: '" + ctx.getText() + "'");
@@ -212,7 +212,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     public RequestResponse visitRequestResponse(FaaSChalCoreParser.RequestResponseContext ctx) {
 
         Expression sourceExpression = visitExpression(ctx.expression());
-        Role sourceRole = visitRole(ctx.role(0));
+        Role sourceRole = visitRole(ctx.role(0)); // TODO check is equal to the second sourceRole
         Media media = visitMedia(ctx.media());
         Variable targetVariable = visitVariable(ctx.variable(0));
         Role targetRole = visitRole(ctx.role(1));
@@ -221,6 +221,12 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         return new RequestResponse(sourceExpression, sourceRole, media, targetVariable, targetRole, sourceVariable,
                 getPosition(ctx));
 
+    }
+
+    @Override
+    public End visitEnd(FaaSChalCoreParser.EndContext ctx) {
+        Role endingRole = visitRole(ctx.role());
+        return new End(endingRole, getPosition(ctx));
     }
 
     @Override
@@ -247,7 +253,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public Assignment visitAssignment(FaaSChalCoreParser.AssignmentContext ctx) {
         Variable variable = visitVariable(ctx.variable());
-        Role targetRole = visitRole(ctx.role(0));
+        Role targetRole = visitRole(ctx.role(0)); // TODO check is equal to the second role
         Expression expression = visitExpression(ctx.expression());
 
         return new Assignment(variable, targetRole, expression, getPosition(ctx));
@@ -269,12 +275,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Object visitConditional(ConditionalContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitEnd(EndContext ctx) {
         // TODO Auto-generated method stub
         return null;
     }

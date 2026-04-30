@@ -33,7 +33,7 @@ public class Selection extends Interaction {
 
     @Override
     public <R> R accept(VisitorInterface<R> v) {
-        v.visit(this);
+        return v.visit(this);
     }
 
 }

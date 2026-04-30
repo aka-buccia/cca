@@ -6,13 +6,11 @@ import cca.FaaSChalCoreParser.AssignmentContext;
 import cca.FaaSChalCoreParser.ConditionalContext;
 import cca.FaaSChalCoreParser.EndContext;
 import cca.FaaSChalCoreParser.EndResponseContext;
-import cca.FaaSChalCoreParser.LabelContext;
 import cca.FaaSChalCoreParser.NonterminatingParametersContext;
 import cca.FaaSChalCoreParser.ProcedureCallContext;
 import cca.FaaSChalCoreParser.ProcedureNameContext;
 import cca.FaaSChalCoreParser.ProcedureParametersContext;
 import cca.FaaSChalCoreParser.RequestResponseContext;
-import cca.FaaSChalCoreParser.SelectionContext;
 import cca.FaaSChalCoreParser.StatefulParametersContext;
 import cca.FaaSChalCoreParser.TerminatingParametersContext;
 import cca.FaaSChalCoreParser.TerminatingTermContext;
@@ -21,6 +19,7 @@ import cca.Position;
 import cca.Program;
 import cca.Role;
 import cca.Media;
+import cca.Label;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.expression.*;
@@ -141,8 +140,10 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
             return visitCommunication(ctx.communication());
         } else if (isPresent(ctx.request())) {
             return visitRequest(ctx.request());
+        } else if (isPresent(ctx.selection())) {
+            return visitSelection(ctx.selection());
         } else {
-            throw new SyntaxException(getPosition(ctx.communication()),
+            throw new SyntaxException(getPosition(ctx),
                     "Unrecognized interaction: '" + ctx.getText() + "'");
         }
 
@@ -211,6 +212,21 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
+    public Selection visitSelection(FaaSChalCoreParser.SelectionContext ctx) {
+        Role sourceRole = visitRole(ctx.role(0));
+        Role targetRole = visitRole(ctx.role(1));
+        Label label = visitLabel(ctx.label());
+
+        return new Selection(sourceRole, targetRole, label, getPosition(ctx));
+    }
+
+    @Override
+    public Label visitLabel(FaaSChalCoreParser.LabelContext ctx) {
+        String id = ctx.ID().getText();
+        return new Label(id, getPosition(ctx));
+    }
+
+    @Override
     public Object visitErrorNode(ErrorNode errorNode) {
         new ParseException("Parsing Error " + errorNode.getText(), errorNode.getSourceInterval().a).printStackTrace();
         return null;
@@ -249,12 +265,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public Object visitLabel(LabelContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public Object visitNonterminatingParameters(NonterminatingParametersContext ctx) {
         // TODO Auto-generated method stub
         return null;
@@ -274,12 +284,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Object visitRequestResponse(RequestResponseContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitSelection(SelectionContext ctx) {
         // TODO Auto-generated method stub
         return null;
     }

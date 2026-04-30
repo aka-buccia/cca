@@ -26,6 +26,6 @@ public class Label extends Node {
 
     @Override
     public <R> R accept(VisitorInterface<R> v) {
-        v.visit(this);
+        return v.visit(this);
     }
 }

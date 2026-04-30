@@ -3,7 +3,6 @@ package cca.optimizer;
 import cca.FaaSChalCoreVisitor;
 import cca.FaaSChalCoreParser;
 import cca.FaaSChalCoreParser.ConditionalContext;
-import cca.FaaSChalCoreParser.EndResponseContext;
 import cca.FaaSChalCoreParser.NonterminatingParametersContext;
 import cca.FaaSChalCoreParser.ProcedureCallContext;
 import cca.FaaSChalCoreParser.ProcedureNameContext;
@@ -145,6 +144,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
             return visitRequestResponse(ctx.requestResponse());
         } else if (isPresent(ctx.end())) {
             return visitEnd(ctx.end());
+        } else if (isPresent(ctx.endResponse())) {
+            return visitEndResponse(ctx.endResponse());
         } else {
             throw new SyntaxException(getPosition(ctx),
                     "Unrecognized interaction: '" + ctx.getText() + "'");
@@ -260,6 +261,15 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
+    public EndResponse visitEndResponse(FaaSChalCoreParser.EndResponseContext ctx) {
+        Expression expression = visitExpression(ctx.expression());
+        Role endingRole = visitRole(ctx.role(0));
+        Role targetRole = visitRole(ctx.role(1));
+
+        return new EndResponse(expression, endingRole, targetRole, getPosition(ctx));
+    }
+
+    @Override
     public Object visitErrorNode(ErrorNode errorNode) {
         new ParseException("Parsing Error " + errorNode.getText(), errorNode.getSourceInterval().a).printStackTrace();
         return null;
@@ -275,12 +285,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Object visitConditional(ConditionalContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitEndResponse(EndResponseContext ctx) {
         // TODO Auto-generated method stub
         return null;
     }

@@ -191,7 +191,7 @@ public class AstOptimizerTest {
 
     @Test
     public void parseRequestResponse() {
-        Choreography choreography = parseChoreography("title@a -M-> x@b |> y@a");
+        Choreography choreography = parseChoreography("title@a <-M-> x@b |> y@a");
 
         assertEquals(1, choreography.interactions().size());
         assertInstanceOf(RequestResponse.class, choreography.interactions().getFirst());

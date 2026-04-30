@@ -143,6 +143,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
             return visitSelection(ctx.selection());
         } else if (isPresent(ctx.assignment())) {
             return visitAssignment(ctx.assignment());
+        } else if (isPresent(ctx.requestResponse())) {
+            return visitRequestResponse(ctx.requestResponse());
         } else {
             throw new SyntaxException(getPosition(ctx),
                     "Unrecognized interaction: '" + ctx.getText() + "'");
@@ -203,6 +205,21 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         Role targetRole = visitRole(ctx.role(1));
 
         return new Request(sourceExpression, sourceRole, media, targetVariable, targetRole, getPosition(ctx));
+
+    }
+
+    @Override
+    public RequestResponse visitRequestResponse(FaaSChalCoreParser.RequestResponseContext ctx) {
+
+        Expression sourceExpression = visitExpression(ctx.expression());
+        Role sourceRole = visitRole(ctx.role(0));
+        Media media = visitMedia(ctx.media());
+        Variable targetVariable = visitVariable(ctx.variable(0));
+        Role targetRole = visitRole(ctx.role(1));
+        Variable sourceVariable = visitVariable(ctx.variable(1));
+
+        return new RequestResponse(sourceExpression, sourceRole, media, targetVariable, targetRole, sourceVariable,
+                getPosition(ctx));
 
     }
 
@@ -282,12 +299,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Object visitProcedureName(ProcedureNameContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitRequestResponse(RequestResponseContext ctx) {
         // TODO Auto-generated method stub
         return null;
     }

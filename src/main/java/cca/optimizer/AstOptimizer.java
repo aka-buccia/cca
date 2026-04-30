@@ -213,7 +213,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public RequestResponse visitRequestResponse(FaaSChalCoreParser.RequestResponseContext ctx) {
 
-        if (!ctx.role(0).equals(ctx.role(2))) {
+        if (!checkRoleMatching(ctx.role(0), ctx.role(2))) {
             throw new SyntaxException(getPosition(ctx),
                     "Request-response role mismatch: '" + ctx.getText()
                             + "'. The first and the last role must match");
@@ -261,7 +261,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public Assignment visitAssignment(FaaSChalCoreParser.AssignmentContext ctx) {
 
-        if (!ctx.role(0).equals(ctx.role(1))) {
+        if (!checkRoleMatching(ctx.role(0), ctx.role(1))) {
             throw new SyntaxException(getPosition(ctx),
                     "Assignment role mismatch: '" + ctx.getText() + "'. Left and right sides must have the same role");
         }
@@ -360,6 +360,11 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     // ----- UTILITIES
+
+    private boolean checkRoleMatching(FaaSChalCoreParser.RoleContext leftRole,
+            FaaSChalCoreParser.RoleContext rightRole) {
+        return leftRole.ID().getText().equals(rightRole.ID().getText());
+    }
 
     // Method for extracting token position
     private Position getPosition(Token t) {

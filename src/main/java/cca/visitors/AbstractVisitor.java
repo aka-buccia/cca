@@ -3,6 +3,7 @@ package cca.visitors;
 import cca.Program;
 import cca.Role;
 import cca.Media;
+import cca.Label;
 import cca.expression.*;
 import cca.procedure.*;
 import cca.choreography.*;
@@ -82,6 +83,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
 
     @Override
     public T visit(Variable n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T visit(Label n) {
         throw new UnsupportedOperationException();
     }
 

@@ -218,6 +218,20 @@ public class AstOptimizerTest {
         assertEquals(new Role("f", emptyPosition), end.endingRole());
     }
 
+    @Test
+    public void parseEndResponse() {
+        Choreography choreography = parseChoreography("end \"bye\"@f -> n");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(EndResponse.class, choreography.interactions().getFirst());
+
+        EndResponse endResponse = (EndResponse) choreography.interactions().getFirst();
+
+        assertInstanceOf(Expression.class, endResponse.expression());
+        assertEquals(new Role("f", emptyPosition), endResponse.endingRole());
+        assertEquals(new Role("f", emptyPosition), endResponse.targetRole());
+    }
+
     // HELPERS
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {

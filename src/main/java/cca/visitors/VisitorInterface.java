@@ -35,6 +35,8 @@ public interface VisitorInterface<R> {
 
     R visit(EndResponse n);
 
+    R visit(Conditional n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

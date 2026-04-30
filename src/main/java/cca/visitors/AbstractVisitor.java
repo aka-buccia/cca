@@ -72,6 +72,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
     }
 
     @Override
+    public T visit(Conditional n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public T visit(Constant<?> n) {
         throw new UnsupportedOperationException();
     }

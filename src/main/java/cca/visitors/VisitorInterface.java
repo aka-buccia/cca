@@ -26,6 +26,8 @@ public interface VisitorInterface<R> {
 
     R visit(Request n);
 
+    R visit(Selection n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

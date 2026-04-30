@@ -175,7 +175,7 @@ public class AstOptimizerTest {
 
     @Test
     public void parseAssignment() {
-        Choreography choreography = parseChoreography("x@n -> sum(2, 3)@n");
+        Choreography choreography = parseChoreography("x@n = sum(2, 3)@n");
 
         assertEquals(1, choreography.interactions().size());
         assertInstanceOf(Assignment.class, choreography.interactions().getFirst());
@@ -183,7 +183,7 @@ public class AstOptimizerTest {
         Assignment request = (Assignment) choreography.interactions().getFirst();
 
         assertEquals(new Role("n", emptyPosition), request.targetRole());
-        assertEquals(new Variable("L", emptyPosition), request.variable());
+        assertEquals(new Variable("x", emptyPosition), request.variable());
         assertInstanceOf(Expression.class, request.expression());
     }
 

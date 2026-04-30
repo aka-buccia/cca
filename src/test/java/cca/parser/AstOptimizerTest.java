@@ -6,6 +6,7 @@ import cca.Position;
 import cca.Program;
 import cca.Role;
 import cca.Media;
+import cca.Label;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.interaction.*;
@@ -156,6 +157,20 @@ public class AstOptimizerTest {
         assertEquals(new Role("a", emptyPosition), request.sourceRole());
         assertEquals(new Media("M", emptyPosition), request.media());
         assertEquals(new Role("b", emptyPosition), request.targetRole());
+    }
+
+    @Test
+    public void parseSelection() {
+        Choreography choreography = parseChoreography("p -> q[L]");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(Request.class, choreography.interactions().getFirst());
+
+        Selection request = (Selection) choreography.interactions().getFirst();
+
+        assertEquals(new Role("p", emptyPosition), request.sourceRole());
+        assertEquals(new Label("L", emptyPosition), request.label());
+        assertEquals(new Role("q", emptyPosition), request.targetRole());
     }
 
     // HELPERS

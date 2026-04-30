@@ -147,6 +147,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
             return visitEndResponse(ctx.endResponse());
         } else if (isPresent(ctx.conditional())) {
             return visitConditional(ctx.conditional());
+        } else if (isPresent(ctx.procedureCall())) {
+            return visitProcedureCall(ctx.procedureCall());
         } else {
             throw new SyntaxException(getPosition(ctx),
                     "Unrecognized interaction: '" + ctx.getText() + "'");
@@ -293,6 +295,21 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
+    public ProcedureCall visitProcedureCall(FaaSChalCoreParser.ProcedureCallContext ctx) {
+
+        String name = visitProcedureName(ctx.procedureName());
+        List<ProcedureParameter> parameters = Collections.emptyList();
+
+        return new ProcedureCall(name, parameters, getPosition(ctx));
+    }
+
+    @Override
+    public String visitProcedureName(FaaSChalCoreParser.ProcedureNameContext ctx) {
+
+        return ctx.ID().getText();
+    }
+
+    @Override
     public Object visitErrorNode(ErrorNode errorNode) {
         new ParseException("Parsing Error " + errorNode.getText(), errorNode.getSourceInterval().a).printStackTrace();
         return null;
@@ -308,18 +325,6 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Object visitNonterminatingParameters(NonterminatingParametersContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitProcedureCall(ProcedureCallContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitProcedureName(ProcedureNameContext ctx) {
         // TODO Auto-generated method stub
         return null;
     }

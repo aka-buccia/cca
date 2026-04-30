@@ -206,6 +206,18 @@ public class AstOptimizerTest {
         assertEquals(new Variable("y", emptyPosition), requestResponse.sourceVariable());
     }
 
+    @Test
+    public void parseEnd() {
+        Choreography choreography = parseChoreography("end f");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(End.class, choreography.interactions().getFirst());
+
+        End end = (End) choreography.interactions().getFirst();
+
+        assertEquals(new Role("f", emptyPosition), end.endingRole());
+    }
+
     // HELPERS
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {

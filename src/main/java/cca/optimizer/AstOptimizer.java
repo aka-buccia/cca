@@ -213,8 +213,14 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public RequestResponse visitRequestResponse(FaaSChalCoreParser.RequestResponseContext ctx) {
 
+        if (!ctx.role(0).equals(ctx.role(2))) {
+            throw new SyntaxException(getPosition(ctx),
+                    "Request-response role mismatch: '" + ctx.getText()
+                            + "'. The first and the last role must match");
+        }
+
         Expression sourceExpression = visitExpression(ctx.expression());
-        Role sourceRole = visitRole(ctx.role(0)); // TODO check is equal to the second sourceRole
+        Role sourceRole = visitRole(ctx.role(0));
         Media media = visitMedia(ctx.media());
         Variable targetVariable = visitVariable(ctx.variable(0));
         Role targetRole = visitRole(ctx.role(1));
@@ -254,8 +260,14 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Assignment visitAssignment(FaaSChalCoreParser.AssignmentContext ctx) {
+
+        if (!ctx.role(0).equals(ctx.role(1))) {
+            throw new SyntaxException(getPosition(ctx),
+                    "Assignment role mismatch: '" + ctx.getText() + "'. Left and right sides must have the same role");
+        }
+
         Variable variable = visitVariable(ctx.variable());
-        Role targetRole = visitRole(ctx.role(0)); // TODO check is equal to the second role
+        Role targetRole = visitRole(ctx.role(0));
         Expression expression = visitExpression(ctx.expression());
 
         return new Assignment(variable, targetRole, expression, getPosition(ctx));

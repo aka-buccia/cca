@@ -67,6 +67,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
     }
 
     @Override
+    public T visit(EndResponse n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public T visit(Constant<?> n) {
         throw new UnsupportedOperationException();
     }

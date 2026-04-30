@@ -33,6 +33,8 @@ public interface VisitorInterface<R> {
 
     R visit(End n);
 
+    R visit(EndResponse n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

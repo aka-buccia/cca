@@ -164,7 +164,7 @@ public class AstOptimizerTest {
         Choreography choreography = parseChoreography("p -> q[L]");
 
         assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(Request.class, choreography.interactions().getFirst());
+        assertInstanceOf(Selection.class, choreography.interactions().getFirst());
 
         Selection request = (Selection) choreography.interactions().getFirst();
 

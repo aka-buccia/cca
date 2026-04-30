@@ -229,7 +229,7 @@ public class AstOptimizerTest {
 
         assertInstanceOf(Expression.class, endResponse.expression());
         assertEquals(new Role("f", emptyPosition), endResponse.endingRole());
-        assertEquals(new Role("f", emptyPosition), endResponse.targetRole());
+        assertEquals(new Role("n", emptyPosition), endResponse.targetRole());
     }
 
     // HELPERS

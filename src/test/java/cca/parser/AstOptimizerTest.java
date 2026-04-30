@@ -232,6 +232,30 @@ public class AstOptimizerTest {
         assertEquals(new Role("n", emptyPosition), endResponse.targetRole());
     }
 
+    @Test
+    public void parseConditionalWithoutProsecution() {
+        Choreography choreography = parseChoreography("if received()@n then {n->q[OK]} else {0}");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(Conditional.class, choreography.interactions().getFirst());
+
+        Conditional conditional = (Conditional) choreography.interactions().getFirst();
+
+        assertInstanceOf(Expression.class, conditional.condition());
+        assertEquals(new Role("n", emptyPosition), conditional.targetRole());
+        assertInstanceOf(Choreography.class, conditional.ifBranch());
+        assertInstanceOf(Choreography.class, conditional.elseBranch());
+    }
+
+    @Test
+    public void parseConditionalWithProsecution() {
+        Choreography choreography = parseChoreography("if received()@n then {n->q[L]} else {0}; x@n = sum(2, 3)@n");
+
+        assertEquals(2, choreography.interactions().size());
+        assertInstanceOf(Conditional.class, choreography.interactions().getFirst());
+        assertInstanceOf(Assignment.class, choreography.interactions().getLast());
+    }
+
     // HELPERS
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {

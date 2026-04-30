@@ -173,6 +173,20 @@ public class AstOptimizerTest {
         assertEquals(new Role("q", emptyPosition), request.targetRole());
     }
 
+    @Test
+    public void parseAssignment() {
+        Choreography choreography = parseChoreography("x@n -> sum(2, 3)@n");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(Assignment.class, choreography.interactions().getFirst());
+
+        Assignment request = (Assignment) choreography.interactions().getFirst();
+
+        assertEquals(new Role("n", emptyPosition), request.targetRole());
+        assertEquals(new Variable("L", emptyPosition), request.variable());
+        assertInstanceOf(Expression.class, request.expression());
+    }
+
     // HELPERS
 
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {

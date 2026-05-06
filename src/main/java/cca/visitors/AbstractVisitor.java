@@ -82,6 +82,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
     }
 
     @Override
+    public T visit(ProcedureParameterList n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public T visit(Constant<?> n) {
         throw new UnsupportedOperationException();
     }

@@ -39,6 +39,8 @@ public interface VisitorInterface<R> {
 
     R visit(ProcedureCall n);
 
+    R visit(ProcedureParameterList n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

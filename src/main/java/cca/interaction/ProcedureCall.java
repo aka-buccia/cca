@@ -1,17 +1,15 @@
 package cca.interaction;
 
-import java.util.List;
-
 import cca.Position;
 import cca.visitors.VisitorInterface;
-import cca.procedure.ProcedureParameter;
+import cca.procedure.ProcedureParameterList;
 
 public class ProcedureCall extends Interaction {
 
     private final String name;
-    private final List<ProcedureParameter> parameters;
+    private final ProcedureParameterList parameters;
 
-    public ProcedureCall(String name, List<ProcedureParameter> parameters, Position position) {
+    public ProcedureCall(String name, ProcedureParameterList parameters, Position position) {
         this.name = name;
         this.parameters = parameters;
         super(position);
@@ -21,7 +19,7 @@ public class ProcedureCall extends Interaction {
         return this.name;
     }
 
-    public List<ProcedureParameter> parameters() {
+    public ProcedureParameterList parameters() {
         return this.parameters;
     }
 

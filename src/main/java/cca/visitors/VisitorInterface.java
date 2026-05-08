@@ -41,6 +41,12 @@ public interface VisitorInterface<R> {
 
     R visit(ProcedureParameterList n);
 
+    R visit(StatefulParameter n);
+
+    R visit(NonTerminatingParameter n);
+
+    R visit(TerminatingParameter n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

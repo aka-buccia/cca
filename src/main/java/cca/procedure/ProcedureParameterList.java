@@ -2,6 +2,7 @@ package cca.procedure;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import cca.Node;
 import cca.Position;
@@ -27,11 +28,26 @@ public class ProcedureParameterList extends Node {
 
     private List<ProcedureParameter> createParametersList() {
         List<ProcedureParameter> newParameterList = new ArrayList<>();
-        this.parameters.addAll(this.statefulParameters);
-        this.parameters.addAll(this.nonTerminatingParameters);
-        this.parameters.addAll(this.terminatingParameters);
+        Stream.of(this.statefulParameters, this.nonTerminatingParameters, this.terminatingParameters)
+                .filter(list -> list != null && !list.isEmpty()).forEach(newParameterList::addAll);
 
         return newParameterList;
+    }
+
+    public List<StatefulParameter> statefulParameters() {
+        return this.statefulParameters;
+    }
+
+    public List<NonTerminatingParameter> statelessParameters() {
+        return this.nonTerminatingParameters;
+    }
+
+    public List<TerminatingParameter> terminatingParameters() {
+        return this.terminatingParameters;
+    }
+
+    public int size() {
+        return parameters.size();
     }
 
     @Override

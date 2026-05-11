@@ -33,11 +33,11 @@ public class AstOptimizerTest {
     }
 
     @Test
-    public void parseSimpleProcedureWithoutParams() {
+    public void parseSimpleProcedureWithOnlyStatefulParams() {
         Procedure procedure = parseProcedure("def ping() { 0 }");
 
         assertEquals("ping", procedure.id());
-        assertEquals(Collections.EMPTY_LIST, procedure.parameters());
+        assertEquals(0, procedure.parameterList().size());
         assertInstanceOf(TerminationOrder.TerminationOrderDefault.class, procedure.terminationOrder());
         assertNotNull(procedure.choreography());
     }
@@ -266,7 +266,20 @@ public class AstOptimizerTest {
         ProcedureCall procedureCall = (ProcedureCall) choreography.interactions().getFirst();
 
         assertEquals("X", procedureCall.name());
-        assertEquals(Collections.EMPTY_LIST, procedureCall.parameters());
+        assertEquals(0, procedureCall.parameterList().size());
+    }
+
+    @Test
+    public void parseProcedureCallWithAllParams() {
+        Choreography choreography = parseChoreography("X(a, b, non term c, term [g, f], e)");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(ProcedureCall.class, choreography.interactions().getFirst());
+
+        ProcedureCall procedureCall = (ProcedureCall) choreography.interactions().getFirst();
+
+        assertEquals("X", procedureCall.name());
+        assertEquals(5, procedureCall.parameterList().size());
     }
 
     // HELPERS
@@ -302,7 +315,7 @@ public class AstOptimizerTest {
     }
 
     private Choreography parseChoreography(String code) {
-        String procedureCode = "def procedureWrapper() {" + code + "}"; // wraps choreography code inside a procedure
+        String procedureCode = "def procedureWrapper(a) {" + code + "}"; // wraps choreography code inside a procedure
         Procedure procedure = parseProcedure(procedureCode);
 
         return procedure.choreography();

@@ -10,18 +10,18 @@ import cca.visitors.VisitorInterface;
 public class Procedure extends Node {
 
     private final String name;
-    private final ProcedureParameterList parameters;
+    private final ProcedureParameterList parameterList;
     private final TerminationOrder terminationOrder;
     private final Choreography choreography;
 
     public Procedure(
             String name,
-            ProcedureParameterList parameters,
+            ProcedureParameterList parameterList,
             TerminationOrder terminationOrder,
             Choreography choreography,
             Position position) {
         this.name = name;
-        this.parameters = parameters;
+        this.parameterList = parameterList;
         this.terminationOrder = terminationOrder;
         this.choreography = choreography;
         super(position);
@@ -32,8 +32,8 @@ public class Procedure extends Node {
         return this.name;
     }
 
-    public ProcedureParameterList parameters() {
-        return this.parameters;
+    public ProcedureParameterList parameterList() {
+        return this.parameterList;
     }
 
     public TerminationOrder terminationOrder() {

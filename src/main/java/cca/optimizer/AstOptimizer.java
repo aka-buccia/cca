@@ -57,7 +57,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     public Procedure visitProcedure(FaaSChalCoreParser.ProcedureContext ctx) {
         String name = ctx.procedureName().getText();
 
-        List<ProcedureParameter> parameters = Collections.emptyList(); // TODO implment ProcedureParameters
+        ProcedureParameterList parameters = new ProcedureParameterList(Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), getPosition(ctx.procedureName())); // TODO implment ProcedureParameters
         TerminationOrder terminationOrder = isPresent(ctx.terminationOrder())
                 ? visitTerminationOrder(ctx.terminationOrder())
                 : new TerminationOrder.TerminationOrderDefault(getPosition(ctx)); // TODO needs an accurate position
@@ -298,7 +299,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     public ProcedureCall visitProcedureCall(FaaSChalCoreParser.ProcedureCallContext ctx) {
 
         String name = visitProcedureName(ctx.procedureName());
-        List<ProcedureParameter> parameters = Collections.emptyList();
+        ProcedureParameterList parameters = new ProcedureParameterList(Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), getPosition(ctx.procedureName())); // TODO implment ProcedureParameters
 
         return new ProcedureCall(name, parameters, getPosition(ctx));
     }

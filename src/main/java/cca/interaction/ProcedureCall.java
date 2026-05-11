@@ -7,11 +7,11 @@ import cca.procedure.ProcedureParameterList;
 public class ProcedureCall extends Interaction {
 
     private final String name;
-    private final ProcedureParameterList parameters;
+    private final ProcedureParameterList parameterList;
 
-    public ProcedureCall(String name, ProcedureParameterList parameters, Position position) {
+    public ProcedureCall(String name, ProcedureParameterList parameterList, Position position) {
         this.name = name;
-        this.parameters = parameters;
+        this.parameterList = parameterList;
         super(position);
     }
 
@@ -19,8 +19,8 @@ public class ProcedureCall extends Interaction {
         return this.name;
     }
 
-    public ProcedureParameterList parameters() {
-        return this.parameters;
+    public ProcedureParameterList parameterList() {
+        return this.parameterList;
     }
 
     @Override

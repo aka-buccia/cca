@@ -271,7 +271,7 @@ public class AstOptimizerTest {
 
     @Test
     public void parseProcedureCallWithAllParams() {
-        Choreography choreography = parseChoreography("X(a, b, non term c, term [g, f], e)");
+        Choreography choreography = parseChoreography("X(a, b, nonterm c, term [g, f], e)");
 
         assertEquals(1, choreography.interactions().size());
         assertInstanceOf(ProcedureCall.class, choreography.interactions().getFirst());

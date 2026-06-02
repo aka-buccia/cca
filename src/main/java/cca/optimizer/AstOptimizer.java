@@ -58,8 +58,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     public Procedure visitProcedure(FaaSChalCoreParser.ProcedureContext ctx) {
         String name = ctx.procedureName().getText();
 
-        ProcedureParameterList parameters = new ProcedureParameterList(Collections.emptyList(), Collections.emptyList(),
-                Collections.emptyList(), getPosition(ctx.procedureName())); // TODO implment ProcedureParameters
+        ProcedureParameterList parameters = visitProcedureParameters(ctx.procedureParameters());
         TerminationOrder terminationOrder = isPresent(ctx.terminationOrder())
                 ? visitTerminationOrder(ctx.terminationOrder())
                 : new TerminationOrder.TerminationOrderDefault(getPosition(ctx)); // TODO needs an accurate position

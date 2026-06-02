@@ -9,6 +9,7 @@ import cca.Media;
 import cca.Label;
 import cca.procedure.*;
 import cca.choreography.*;
+import cca.exceptions.SyntaxException;
 import cca.interaction.*;
 import cca.expression.*;
 import cca.optimizer.AstOptimizer;
@@ -257,16 +258,8 @@ public class AstOptimizerTest {
     }
 
     @Test
-    public void parseProcedureCallWithoutParams() {
-        Choreography choreography = parseChoreography("X()");
-
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(ProcedureCall.class, choreography.interactions().getFirst());
-
-        ProcedureCall procedureCall = (ProcedureCall) choreography.interactions().getFirst();
-
-        assertEquals("X", procedureCall.name());
-        assertEquals(0, procedureCall.parameterList().size());
+    public void parseProcedureCallWithoutParamsShouldRaiseAnException() {
+        assertThrows(SyntaxException.class, () -> parseChoreography("X()"));
     }
 
     @Test
@@ -306,7 +299,7 @@ public class AstOptimizerTest {
         return optimizer.visitProgram(ctx);
     }
 
-    // Helper: parsa una singola procedure
+    // Helper: parse a single procedure
     private Procedure parseProcedure(String code) {
         Program program = parseProgram(code);
         assertEquals(1, program.procedures().size());

@@ -6,6 +6,8 @@ import cca.Media;
 import cca.Label;
 import cca.expression.*;
 import cca.procedure.*;
+import cca.procedure.TerminatingParameter.TerminatingParameterCouple;
+import cca.procedure.TerminatingParameter.TerminatingParameterSingle;
 import cca.choreography.*;
 import cca.interaction.*;
 
@@ -72,7 +74,12 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
     }
 
     @Override
-    public T visit(TerminatingParameter n) {
+    public T visit(TerminatingParameterCouple n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T visit(TerminatingParameterSingle n) {
         throw new UnsupportedOperationException();
     }
 

@@ -8,6 +8,8 @@ import cca.expression.*;
 import cca.choreography.*;
 import cca.interaction.*;
 import cca.procedure.*;
+import cca.procedure.TerminatingParameter.TerminatingParameterCouple;
+import cca.procedure.TerminatingParameter.TerminatingParameterSingle;
 
 public interface VisitorInterface<R> {
 
@@ -45,7 +47,9 @@ public interface VisitorInterface<R> {
 
     R visit(NonTerminatingParameter n);
 
-    R visit(TerminatingParameter n);
+    R visit(TerminatingParameterCouple n);
+
+    R visit(TerminatingParameterSingle n);
 
     R visit(Constant<?> n);
 

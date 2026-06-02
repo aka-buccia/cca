@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.awt.Taskbar.State;
 import java.text.ParseException;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -299,9 +300,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     public ProcedureCall visitProcedureCall(FaaSChalCoreParser.ProcedureCallContext ctx) {
 
         String name = visitProcedureName(ctx.procedureName());
-        ProcedureParameterList parameters = new ProcedureParameterList(Collections.emptyList(), Collections.emptyList(),
-                Collections.emptyList(), getPosition(ctx.procedureName())); // TODO implment ProcedureParameters
-
+        ProcedureParameterList parameters = visitProcedureParameters(ctx.procedureParameters());
         return new ProcedureCall(name, parameters, getPosition(ctx));
     }
 
@@ -312,41 +311,61 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public Object visitErrorNode(ErrorNode errorNode) {
-        new ParseException("Parsing Error " + errorNode.getText(), errorNode.getSourceInterval().a).printStackTrace();
-        return null;
-    }
+    public ProcedureParameterList visitProcedureParameters(ProcedureParametersContext ctx) {
+        List<StatefulParameter> statefulParameters = ifPresent(ctx.statefulParameters()).applyOrElse(
+                this::visitStatefulParameters,
+                Collections::emptyList);
+        List<NonTerminatingParameter> nonTerminatingParameters = ifPresent(ctx.nonterminatingParameters()).applyOrElse(
+                this::visitNonterminatingParameters,
+                Collections::emptyList);
+        List<TerminatingParameter> terminatingParameters = ifPresent(ctx.terminatingParameters()).applyOrElse(
+                this::visitTerminatingParameters,
+                Collections::emptyList);
 
-    // Interface methods not implemented
+        return new ProcedureParameterList(statefulParameters, nonTerminatingParameters, terminatingParameters,
+                getPosition(ctx));
 
-    @Override
-    public Object visitProcedureParameters(ProcedureParametersContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Object visitNonterminatingParameters(NonterminatingParametersContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
-    public Object visitStatefulParameters(StatefulParametersContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<NonTerminatingParameter> visitNonterminatingParameters(NonterminatingParametersContext ctx) {
+        List<NonTerminatingParameter> nonTerminatingParameters = ctx.role().stream()
+                .map((ctxRole) -> {
+                    return new NonTerminatingParameter(visitRole(ctxRole), getPosition(ctxRole));
+                })
+                .collect(Collectors.toList());
+        return nonTerminatingParameters;
     }
 
     @Override
-    public Object visitTerminatingParameters(TerminatingParametersContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<StatefulParameter> visitStatefulParameters(StatefulParametersContext ctx) {
+        List<StatefulParameter> statefulParameters = ctx.role().stream()
+                .map((ctxRole) -> {
+                    return new StatefulParameter(visitRole(ctxRole), getPosition(ctxRole));
+                })
+                .collect(Collectors.toList());
+        return statefulParameters;
     }
 
     @Override
-    public Object visitTerminatingTerm(TerminatingTermContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<TerminatingParameter> visitTerminatingParameters(TerminatingParametersContext ctx) {
+        List<TerminatingParameter> terminatingParameters = ctx.terminatingTerm().stream()
+                .map(this::visitTerminatingTerm)
+                .collect(Collectors.toList());
+        return terminatingParameters;
+    }
+
+    @Override
+    public TerminatingParameter visitTerminatingTerm(TerminatingTermContext ctx) {
+        Role createdRole = visitRole(ctx.role().getFirst());
+
+        if (isPresent(ctx.role(1))) {
+            Role creatorRole = visitRole(ctx.role().getLast());
+            return new TerminatingParameter.TerminatingParameterCouple(createdRole, creatorRole, getPosition(ctx));
+        } else {
+            return new TerminatingParameter.TerminatingParameterSingle(createdRole, getPosition(ctx));
+        }
+
     }
 
     // Interface methods that shouldn't be used by AstOptimizer
@@ -364,6 +383,12 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public Object visitTerminal(TerminalNode terminalNode) {
         throw new UnsupportedOperationException("The AstOptimizer should not visit TerminalNodes");
+    }
+
+    @Override
+    public Object visitErrorNode(ErrorNode errorNode) {
+        new ParseException("Parsing Error " + errorNode.getText(), errorNode.getSourceInterval().a).printStackTrace();
+        return null;
     }
 
     // ----- UTILITIES

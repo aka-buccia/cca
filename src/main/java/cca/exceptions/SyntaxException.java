@@ -1,6 +1,6 @@
 package cca.exceptions;
 
-import cca.Position;
+import cca.ast.Position;
 
 public class SyntaxException extends RuntimeException {
 

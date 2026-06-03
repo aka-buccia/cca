@@ -28,7 +28,7 @@
             <version>${antlr4.version}</version>
         </dependency>
 
-        <!-- ANTLR4 Tool (per TestRig) -->
+        <!-- ANTLR4 Tool (for TestRig) -->
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4</artifactId>
@@ -78,15 +78,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Exec Maven Plugin per esecuzione diretta -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <mainClass>io.cca.Main</mainClass>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 </project>

@@ -2,17 +2,16 @@ package cca.parser;
 
 import cca.FaaSChalCoreLexer;
 import cca.FaaSChalCoreParser;
-import cca.Position;
-import cca.Program;
-import cca.Role;
-import cca.Media;
-import cca.Label;
-import cca.procedure.*;
-import cca.choreography.*;
+import cca.ast.Position;
+import cca.ast.Program;
+import cca.ast.Role;
+import cca.ast.Media;
+import cca.ast.Label;
+import cca.ast.choreography.*;
+import cca.ast.expression.*;
+import cca.ast.procedure.*;
+import cca.ast.instruction.*;
 import cca.exceptions.SyntaxException;
-import cca.instruction.*;
-import cca.expression.*;
-import cca.optimizer.AstOptimizer;
 
 import org.antlr.v4.runtime.*;
 

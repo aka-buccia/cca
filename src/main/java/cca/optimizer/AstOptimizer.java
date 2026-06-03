@@ -11,7 +11,7 @@ import cca.Label;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.expression.*;
-import cca.interaction.*;
+import cca.instruction.*;
 import cca.exceptions.*;
 
 import java.util.Collections;
@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.awt.Taskbar.State;
 import java.text.ParseException;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -83,12 +82,12 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public Choreography visitChoreography(FaaSChalCoreParser.ChoreographyContext ctx) {
 
-        List<Interaction> interactions = ctx.interaction().stream().map(this::visitInteraction)
+        List<Instruction> instructions = ctx.interaction().stream().map(this::visitInteraction)
                 .collect(Collectors.toList());
         Terminated termination = isPresent(ctx.terminated()) ? visitTerminated(ctx.terminated())
                 : new Terminated.TerminatedOmitted(getPosition(ctx.getStop()));
 
-        return new Choreography(interactions, termination, getPosition(ctx));
+        return new Choreography(instructions, termination, getPosition(ctx));
     }
 
     @Override
@@ -123,7 +122,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public Interaction visitInteraction(FaaSChalCoreParser.InteractionContext ctx) {
+    public Instruction visitInteraction(FaaSChalCoreParser.InteractionContext ctx) {
 
         if (isPresent(ctx.communication())) {
             return visitCommunication(ctx.communication());

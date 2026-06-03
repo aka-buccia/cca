@@ -1,4 +1,4 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.Position;
 import cca.Role;

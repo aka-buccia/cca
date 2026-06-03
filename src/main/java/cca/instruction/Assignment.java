@@ -1,4 +1,4 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.Position;
 import cca.Role;
@@ -6,7 +6,7 @@ import cca.expression.Expression;
 import cca.expression.Variable;
 import cca.visitors.VisitorInterface;
 
-public class Assignment extends Interaction {
+public class Assignment extends Instruction {
 
     private final Variable variable;
     private final Role targetRole;

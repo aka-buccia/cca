@@ -1,10 +1,10 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.Position;
 import cca.Role;
 import cca.visitors.VisitorInterface;
 
-public class End extends Interaction {
+public class End extends Instruction {
 
     private final Role endingRole;
 

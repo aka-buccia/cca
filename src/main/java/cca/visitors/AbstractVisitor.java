@@ -9,7 +9,7 @@ import cca.procedure.*;
 import cca.procedure.TerminatingParameter.TerminatingParameterCouple;
 import cca.procedure.TerminatingParameter.TerminatingParameterSingle;
 import cca.choreography.*;
-import cca.interaction.*;
+import cca.instruction.*;
 
 public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
 

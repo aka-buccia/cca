@@ -1,10 +1,10 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.Position;
 import cca.visitors.VisitorInterface;
 import cca.procedure.ProcedureParameterList;
 
-public class ProcedureCall extends Interaction {
+public class ProcedureCall extends Instruction {
 
     private final String name;
     private final ProcedureParameterList parameterList;

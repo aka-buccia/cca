@@ -2,23 +2,23 @@ package cca.choreography;
 
 import cca.Node;
 import cca.Position;
-import cca.interaction.*;
+import cca.instruction.*;
 import cca.visitors.VisitorInterface;
 import java.util.List;
 
 public class Choreography extends Node {
 
-    private final List<Interaction> interactions;
+    private final List<Instruction> instructions;
     private final Terminated termination;
 
-    public Choreography(List<Interaction> interactions, Terminated termination, Position position) {
-        this.interactions = interactions;
+    public Choreography(List<Instruction> instructions, Terminated termination, Position position) {
+        this.instructions = instructions;
         this.termination = termination;
         super(position);
     }
 
-    public List<Interaction> interactions() {
-        return this.interactions;
+    public List<Instruction> interactions() {
+        return this.instructions;
     }
 
     public Terminated termination() {

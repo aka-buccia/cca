@@ -1,11 +1,11 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.Role;
 import cca.Position;
 import cca.expression.*;
 import cca.visitors.VisitorInterface;
 
-public class Communication extends Interaction {
+public class Communication extends Instruction {
 
     private final Expression expression;
     private final Role leftRole;

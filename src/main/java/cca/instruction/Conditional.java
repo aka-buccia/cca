@@ -1,4 +1,4 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.Position;
 import cca.Role;
@@ -6,7 +6,7 @@ import cca.choreography.Choreography;
 import cca.expression.Expression;
 import cca.visitors.VisitorInterface;
 
-public class Conditional extends Interaction {
+public class Conditional extends Instruction {
 
     private final Expression condition;
     private final Role targetRole;

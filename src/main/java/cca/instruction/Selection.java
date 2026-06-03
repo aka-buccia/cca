@@ -1,11 +1,11 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.Position;
 import cca.Role;
 import cca.Label;
 import cca.visitors.VisitorInterface;
 
-public class Selection extends Interaction {
+public class Selection extends Instruction {
 
     private final Role sourceRole;
     private final Role targetRole;

@@ -1,4 +1,4 @@
-package cca.interaction;
+package cca.instruction;
 
 import cca.expression.*;
 import cca.Position;
@@ -6,7 +6,7 @@ import cca.visitors.VisitorInterface;
 import cca.Role;
 import cca.Media;
 
-public class Request extends Interaction {
+public class Request extends Instruction {
 
     private final Expression sourceExpression;
     private final Role sourceRole;

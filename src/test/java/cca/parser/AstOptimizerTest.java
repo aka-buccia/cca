@@ -10,7 +10,7 @@ import cca.Label;
 import cca.procedure.*;
 import cca.choreography.*;
 import cca.exceptions.SyntaxException;
-import cca.interaction.*;
+import cca.instruction.*;
 import cca.expression.*;
 import cca.optimizer.AstOptimizer;
 

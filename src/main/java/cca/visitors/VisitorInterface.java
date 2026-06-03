@@ -6,7 +6,7 @@ import cca.Media;
 import cca.Label;
 import cca.expression.*;
 import cca.choreography.*;
-import cca.interaction.*;
+import cca.instruction.*;
 import cca.procedure.*;
 import cca.procedure.TerminatingParameter.TerminatingParameterCouple;
 import cca.procedure.TerminatingParameter.TerminatingParameterSingle;

@@ -8,8 +8,6 @@ import cca.expression.*;
 import cca.choreography.*;
 import cca.instruction.*;
 import cca.procedure.*;
-import cca.procedure.TerminatingParameter.TerminatingParameterCouple;
-import cca.procedure.TerminatingParameter.TerminatingParameterSingle;
 
 public interface VisitorInterface<R> {
 

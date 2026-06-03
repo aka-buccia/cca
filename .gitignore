@@ -11,9 +11,11 @@
 target
 
 #IDE
-.classpath
-.project
-.settings
+*.classpath
+*.project
+*.settings
+*.iml
+*.idea
 
 #Test files
 *.txt

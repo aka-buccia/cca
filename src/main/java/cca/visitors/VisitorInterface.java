@@ -47,9 +47,7 @@ public interface VisitorInterface<R> {
 
     R visit(NonTerminatingParameter n);
 
-    R visit(TerminatingParameterCouple n);
-
-    R visit(TerminatingParameterSingle n);
+    R visit(TerminatingParameter n);
 
     R visit(Constant<?> n);
 

@@ -74,12 +74,7 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
     }
 
     @Override
-    public T visit(TerminatingParameterCouple n) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public T visit(TerminatingParameterSingle n) {
+    public T visit(TerminatingParameter n) {
         throw new UnsupportedOperationException();
     }
 

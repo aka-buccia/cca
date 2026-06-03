@@ -2,13 +2,6 @@ package cca.optimizer;
 
 import cca.FaaSChalCoreVisitor;
 import cca.FaaSChalCoreParser;
-import cca.FaaSChalCoreParser.NonterminatingParametersContext;
-import cca.FaaSChalCoreParser.ProcedureCallContext;
-import cca.FaaSChalCoreParser.ProcedureNameContext;
-import cca.FaaSChalCoreParser.ProcedureParametersContext;
-import cca.FaaSChalCoreParser.StatefulParametersContext;
-import cca.FaaSChalCoreParser.TerminatingParametersContext;
-import cca.FaaSChalCoreParser.TerminatingTermContext;
 import cca.Node;
 import cca.Position;
 import cca.Program;
@@ -310,7 +303,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public ProcedureParameterList visitProcedureParameters(ProcedureParametersContext ctx) {
+    public ProcedureParameterList visitProcedureParameters(FaaSChalCoreParser.ProcedureParametersContext ctx) {
         List<StatefulParameter> statefulParameters = ifPresent(ctx.statefulParameters()).applyOrElse(
                 this::visitStatefulParameters,
                 Collections::emptyList);
@@ -327,7 +320,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public List<NonTerminatingParameter> visitNonterminatingParameters(NonterminatingParametersContext ctx) {
+    public List<NonTerminatingParameter> visitNonterminatingParameters(
+            FaaSChalCoreParser.NonterminatingParametersContext ctx) {
         List<NonTerminatingParameter> nonTerminatingParameters = ctx.role().stream()
                 .map((ctxRole) -> {
                     return new NonTerminatingParameter(visitRole(ctxRole), getPosition(ctxRole));
@@ -337,7 +331,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public List<StatefulParameter> visitStatefulParameters(StatefulParametersContext ctx) {
+    public List<StatefulParameter> visitStatefulParameters(FaaSChalCoreParser.StatefulParametersContext ctx) {
         List<StatefulParameter> statefulParameters = ctx.role().stream()
                 .map((ctxRole) -> {
                     return new StatefulParameter(visitRole(ctxRole), getPosition(ctxRole));
@@ -347,7 +341,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public List<TerminatingParameter> visitTerminatingParameters(TerminatingParametersContext ctx) {
+    public List<TerminatingParameter> visitTerminatingParameters(FaaSChalCoreParser.TerminatingParametersContext ctx) {
         List<TerminatingParameter> terminatingParameters = ctx.terminatingTerm().stream()
                 .map(this::visitTerminatingTerm)
                 .collect(Collectors.toList());
@@ -355,14 +349,14 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public TerminatingParameter visitTerminatingTerm(TerminatingTermContext ctx) {
+    public TerminatingParameter visitTerminatingTerm(FaaSChalCoreParser.TerminatingTermContext ctx) {
         Role createdRole = visitRole(ctx.role().getFirst());
 
         if (isPresent(ctx.role(1))) {
             Role creatorRole = visitRole(ctx.role().getLast());
-            return new TerminatingParameter.TerminatingParameterCouple(createdRole, creatorRole, getPosition(ctx));
+            return new TerminatingParameter(createdRole, creatorRole, getPosition(ctx));
         } else {
-            return new TerminatingParameter.TerminatingParameterSingle(createdRole, getPosition(ctx));
+            return new TerminatingParameter(createdRole, null, getPosition(ctx));
         }
 
     }

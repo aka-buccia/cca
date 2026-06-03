@@ -1,11 +1,6 @@
 # ANTLR specific
 *.tokens
 *.interp
-*Lexer.java
-*Parser.java
-*BaseVisitor.java
-*Listener.java
-*BaseListener.java
 
 #Build directory
 target

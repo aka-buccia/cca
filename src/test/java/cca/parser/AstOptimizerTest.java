@@ -35,17 +35,44 @@ public class AstOptimizerTest {
 
     @Test
     public void parseSimpleProcedureWithOnlyStatefulParams() {
-        Procedure procedure = parseProcedure("def ping() { 0 }");
+        Procedure procedure = parseProcedure("def ping(a) {0}");
 
         assertEquals("ping", procedure.id());
-        assertEquals(0, procedure.parameterList().size());
+        assertEquals(1, procedure.parameterList().size());
         assertInstanceOf(TerminationOrder.TerminationOrderDefault.class, procedure.terminationOrder());
-        assertNotNull(procedure.choreography());
+
+        List<StatefulParameter> statefulParameters = procedure.parameterList().statefulParameters();
+
+        assertEquals(1, statefulParameters.size());
+        assertEquals(new Role("a", emptyPosition), statefulParameters.getFirst().parameter());
+    }
+
+    @Test
+    public void parseSimpleProcedureWithOnlyNonTerminatingParams() {
+        Procedure procedure = parseProcedure("def ping(nonterm a) {0}");
+
+        List<NonTerminatingParameter> nonTerminatingParameters = procedure.parameterList().nonTerminatingParameters();
+
+        assertEquals(1, nonTerminatingParameters.size());
+        assertEquals(new Role("a", emptyPosition), nonTerminatingParameters.getFirst().parameter());
+    }
+
+    @Test
+    public void parseSimpleProcedureWithOnlyTerminatingParams() {
+        Procedure procedure = parseProcedure("def ping(term a, [b, c]) {0}");
+
+        List<TerminatingParameter> terminatingParameters = procedure.parameterList().terminatingParameters();
+
+        assertEquals(2, terminatingParameters.size());
+
+        assertEquals(new Role("a", emptyPosition), terminatingParameters.getFirst().createdRole());
+        assertEquals(new Role("b", emptyPosition), terminatingParameters.getLast().createdRole());
+        assertEquals(new Role("c", emptyPosition), terminatingParameters.getLast().creatorRole());
     }
 
     @Test
     public void parseSimpleProcedureWithTerminationOrder() {
-        Procedure procedure = parseProcedure("def ping(): (a <: b, b <: c) {0}");
+        Procedure procedure = parseProcedure("def ping(term a, b, c): (a <: b, b <: c) {0}");
 
         assertInstanceOf(List.class, procedure.terminationOrder().elements());
         OrderingCouple firstCouple = procedure.terminationOrder().elements().get(0);

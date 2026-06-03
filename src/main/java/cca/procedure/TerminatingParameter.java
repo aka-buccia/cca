@@ -4,12 +4,14 @@ import cca.Position;
 import cca.Role;
 import cca.visitors.VisitorInterface;
 
-public abstract class TerminatingParameter extends ProcedureParameter {
+public class TerminatingParameter extends ProcedureParameter {
 
     private final Role createdRole;
+    private final Role creatorRole;
 
-    public TerminatingParameter(Role createdRole, Position position) {
+    public TerminatingParameter(Role createdRole, Role creatorRole, Position position) {
         this.createdRole = createdRole;
+        this.creatorRole = creatorRole;
         super(position);
     }
 
@@ -17,35 +19,13 @@ public abstract class TerminatingParameter extends ProcedureParameter {
         return this.createdRole;
     }
 
-    public static class TerminatingParameterCouple extends TerminatingParameter {
-
-        private final Role creatorRole;
-
-        public TerminatingParameterCouple(Role createdRole, Role creatorRole, Position position) {
-            this.creatorRole = creatorRole;
-            super(createdRole, position);
-        }
-
-        public Role creatorRole() {
-            return this.creatorRole;
-        }
-
-        @Override
-        public <R> R accept(VisitorInterface<R> v) {
-            return v.visit(this);
-        }
+    public Role creatorRole() {
+        return this.creatorRole;
     }
 
-    public static class TerminatingParameterSingle extends TerminatingParameter {
-
-        public TerminatingParameterSingle(Role createdRole, Position position) {
-            super(createdRole, position);
-        }
-
-        @Override
-        public <R> R accept(VisitorInterface<R> v) {
-            return v.visit(this);
-        }
+    @Override
+    public <R> R accept(VisitorInterface<R> v) {
+        return v.visit(this);
     }
 
 }

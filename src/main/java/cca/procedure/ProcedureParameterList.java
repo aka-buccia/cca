@@ -38,7 +38,7 @@ public class ProcedureParameterList extends Node {
         return this.statefulParameters;
     }
 
-    public List<NonTerminatingParameter> statelessParameters() {
+    public List<NonTerminatingParameter> nonTerminatingParameters() {
         return this.nonTerminatingParameters;
     }
 

@@ -37,4 +37,9 @@ public class Parser {
         CharStream input = CharStreams.fromFileName(filename);
         return parse(filename, input);
     }
+
+    public static Program parseSourceCode(String sourceCode) {
+        CharStream input = CharStreams.fromString(sourceCode);
+        return parse(null, input);
+    }
 }

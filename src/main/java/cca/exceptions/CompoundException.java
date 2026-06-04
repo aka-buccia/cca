@@ -2,6 +2,8 @@ package cca.exceptions;
 
 import java.util.List;
 
+//Exception that wraps a list of exceptions 
+
 public class CompoundException extends FaaSChalCoreException {
 
     private List<? extends FaaSChalCoreException> causes;

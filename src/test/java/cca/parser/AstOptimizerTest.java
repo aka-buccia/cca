@@ -63,9 +63,6 @@ public class AstOptimizerTest {
         assertEquals(new Role("a", emptyPosition), terminatingParameters.getFirst().createdRole());
         assertEquals(new Role("b", emptyPosition), terminatingParameters.getLast().createdRole());
         assertEquals(new Role("c", emptyPosition), terminatingParameters.getLast().creatorRole());
-
-        System.out.println(procedure.parameterList().position());
-        System.out.println(procedure.terminationOrder().position());
     }
 
     @Test
@@ -78,8 +75,6 @@ public class AstOptimizerTest {
 
         assertEquals(createOrderingCouple("a", "b"), firstCouple);
         assertEquals(createOrderingCouple("b", "c"), secondCouple);
-
-        System.out.println(procedure.terminationOrder().position());
     }
 
     @Test
@@ -273,6 +268,19 @@ public class AstOptimizerTest {
         assertEquals(new Role("n", emptyPosition), conditional.targetRole());
         assertInstanceOf(Choreography.class, conditional.ifBranch());
         assertInstanceOf(Choreography.class, conditional.elseBranch());
+    }
+
+    @Test
+    public void parseConditionalWithoutElse() {
+        Choreography choreography = parseChoreography("if received()@n then {n->q[OK]}");
+
+        assertEquals(1, choreography.interactions().size());
+        assertInstanceOf(Conditional.class, choreography.interactions().getFirst());
+
+        Conditional conditional = (Conditional) choreography.interactions().getFirst();
+
+        assertInstanceOf(Expression.class, conditional.condition());
+        assertInstanceOf(Terminated.TerminatedOmitted.class, conditional.elseBranch().termination());
     }
 
     @Test

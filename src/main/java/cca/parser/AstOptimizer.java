@@ -282,7 +282,9 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         Expression condition = visitExpression(ctx.expression());
         Role targetRole = visitRole(ctx.role());
         Choreography ifBranch = visitChoreography(ctx.choreography(0));
-        Choreography elseBranch = visitChoreography(ctx.choreography(1));
+        Choreography elseBranch = isPresent(ctx.choreography(1))
+                ? visitChoreography(ctx.choreography(1))
+                : createNoOpChoreography(getPosition(ctx.choreography(0).getStop()));
 
         return new Conditional(condition, targetRole, ifBranch, elseBranch, getPosition(ctx));
     }
@@ -384,6 +386,11 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     // ----- UTILITIES
+
+    // Creates an empty choreography for missing else branch
+    private Choreography createNoOpChoreography(Position position) {
+        return new Choreography(Collections.emptyList(), new Terminated.TerminatedOmitted(position), position);
+    }
 
     private boolean checkRoleMatching(FaaSChalCoreParser.RoleContext leftRole,
             FaaSChalCoreParser.RoleContext rightRole) {

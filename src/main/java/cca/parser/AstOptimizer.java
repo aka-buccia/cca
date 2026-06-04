@@ -53,7 +53,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         ProcedureParameterList parameters = visitProcedureParameters(ctx.procedureParameters());
         TerminationOrder terminationOrder = isPresent(ctx.terminationOrder())
                 ? visitTerminationOrder(ctx.terminationOrder())
-                : new TerminationOrder.TerminationOrderDefault(getPosition(ctx)); // TODO needs an accurate position
+                : new TerminationOrder.TerminationOrderDefault(getPosition(ctx.procedureParameters().getStop()));
         Choreography choreography = visitChoreography(ctx.choreography());
 
         return new Procedure(name, parameters, terminationOrder, choreography, getPosition(ctx));

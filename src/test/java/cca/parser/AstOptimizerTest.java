@@ -1,7 +1,5 @@
 package cca.parser;
 
-import cca.FaaSChalCoreLexer;
-import cca.FaaSChalCoreParser;
 import cca.ast.Position;
 import cca.ast.Program;
 import cca.ast.Role;
@@ -11,9 +9,7 @@ import cca.ast.choreography.*;
 import cca.ast.expression.*;
 import cca.ast.procedure.*;
 import cca.ast.instruction.*;
-import cca.exceptions.SyntaxException;
-
-import org.antlr.v4.runtime.*;
+import cca.exceptions.*;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -285,7 +281,7 @@ public class AstOptimizerTest {
 
     @Test
     public void parseProcedureCallWithoutParamsShouldRaiseAnException() {
-        assertThrows(SyntaxException.class, () -> parseChoreography("X()"));
+        assertThrows(FaaSChalCoreException.class, () -> parseChoreography("X()"));
     }
 
     @Test
@@ -315,14 +311,7 @@ public class AstOptimizerTest {
     }
 
     private Program parseProgram(String code) {
-        CharStream input = CharStreams.fromString(code);
-        FaaSChalCoreLexer lexer = new FaaSChalCoreLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        FaaSChalCoreParser parser = new FaaSChalCoreParser(tokens);
-
-        FaaSChalCoreParser.ProgramContext ctx = parser.program();
-        AstOptimizer optimizer = new AstOptimizer();
-        return optimizer.visitProgram(ctx);
+        return Parser.parseSourceCode(code);
     }
 
     // Helper: parse a single procedure

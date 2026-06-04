@@ -2,7 +2,7 @@ package cca.exceptions;
 
 import cca.ast.Position;
 
-public class SyntaxException extends RuntimeException {
+public class SyntaxException extends FaaSChalCoreException {
 
     private final Position position;
 

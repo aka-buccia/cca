@@ -5,6 +5,7 @@ import cca.ast.Program;
 import cca.ast.Role;
 import cca.ast.Media;
 import cca.ast.Label;
+import cca.ast.Name;
 import cca.ast.choreography.*;
 import cca.ast.expression.*;
 import cca.ast.procedure.*;
@@ -32,14 +33,14 @@ public class AstOptimizerTest {
     public void parseSimpleProcedureWithOnlyStatefulParams() {
         Procedure procedure = parseProcedure("def ping(a) {0}");
 
-        assertEquals("ping", procedure.id());
+        assertEquals("ping", procedure.name().id());
         assertEquals(1, procedure.parameterList().size());
         assertInstanceOf(TerminationOrder.TerminationOrderDefault.class, procedure.terminationOrder());
 
         List<StatefulParameter> statefulParameters = procedure.parameterList().statefulParameters();
 
         assertEquals(1, statefulParameters.size());
-        assertEquals(new Role("a", emptyPosition), statefulParameters.getFirst().parameter());
+        assertEquals(createRole("a"), statefulParameters.getFirst().parameter());
     }
 
     @Test
@@ -49,7 +50,7 @@ public class AstOptimizerTest {
         List<NonTerminatingParameter> nonTerminatingParameters = procedure.parameterList().nonTerminatingParameters();
 
         assertEquals(1, nonTerminatingParameters.size());
-        assertEquals(new Role("a", emptyPosition), nonTerminatingParameters.getFirst().parameter());
+        assertEquals(createRole("a"), nonTerminatingParameters.getFirst().parameter());
     }
 
     @Test
@@ -60,9 +61,9 @@ public class AstOptimizerTest {
 
         assertEquals(2, terminatingParameters.size());
 
-        assertEquals(new Role("a", emptyPosition), terminatingParameters.getFirst().createdRole());
-        assertEquals(new Role("b", emptyPosition), terminatingParameters.getLast().createdRole());
-        assertEquals(new Role("c", emptyPosition), terminatingParameters.getLast().creatorRole());
+        assertEquals(createRole("a"), terminatingParameters.getFirst().createdRole());
+        assertEquals(createRole("b"), terminatingParameters.getLast().createdRole());
+        assertEquals(createRole("c"), terminatingParameters.getLast().creatorRole());
     }
 
     @Test
@@ -100,8 +101,8 @@ public class AstOptimizerTest {
 
         Communication communication = (Communication) choreography.interactions().getFirst();
 
-        assertEquals(new Role("a", emptyPosition), communication.leftRole());
-        assertEquals(new Role("b", emptyPosition), communication.rightRole());
+        assertEquals(createRole("a"), communication.leftRole());
+        assertEquals(createRole("b"), communication.rightRole());
     }
 
     @Test
@@ -137,7 +138,7 @@ public class AstOptimizerTest {
 
         Variable variable = communication.variable();
 
-        assertEquals("x", variable.id());
+        assertEquals("x", variable.name().id());
     }
 
     @Test
@@ -149,7 +150,7 @@ public class AstOptimizerTest {
 
         LocalFunction function = (LocalFunction) communication.expression();
 
-        assertEquals("order", function.id());
+        assertEquals("order", function.name().id());
         assertEquals(Collections.EMPTY_LIST, function.parameters());
     }
 
@@ -177,11 +178,11 @@ public class AstOptimizerTest {
 
         Request request = (Request) choreography.interactions().getFirst();
 
-        assertEquals(new Role("a", emptyPosition), request.sourceRole());
+        assertEquals(createRole("a"), request.sourceRole());
         assertInstanceOf(Expression.class, request.sourceExpression());
-        assertEquals(new Media("M", emptyPosition), request.media());
-        assertEquals(new Variable("x", emptyPosition), request.targetVariable());
-        assertEquals(new Role("b", emptyPosition), request.targetRole());
+        assertEquals(createMedia("M"), request.media());
+        assertEquals(createVariable("x"), request.targetVariable());
+        assertEquals(createRole("b"), request.targetRole());
     }
 
     @Test
@@ -193,9 +194,9 @@ public class AstOptimizerTest {
 
         Selection request = (Selection) choreography.interactions().getFirst();
 
-        assertEquals(new Role("p", emptyPosition), request.sourceRole());
-        assertEquals(new Label("L", emptyPosition), request.label());
-        assertEquals(new Role("q", emptyPosition), request.targetRole());
+        assertEquals(createRole("p"), request.sourceRole());
+        assertEquals(createLabel("L"), request.label());
+        assertEquals(createRole("q"), request.targetRole());
     }
 
     @Test
@@ -207,8 +208,8 @@ public class AstOptimizerTest {
 
         Assignment request = (Assignment) choreography.interactions().getFirst();
 
-        assertEquals(new Role("n", emptyPosition), request.targetRole());
-        assertEquals(new Variable("x", emptyPosition), request.variable());
+        assertEquals(createRole("n"), request.targetRole());
+        assertEquals(createVariable("x"), request.variable());
         assertInstanceOf(Expression.class, request.expression());
     }
 
@@ -221,12 +222,12 @@ public class AstOptimizerTest {
 
         RequestResponse requestResponse = (RequestResponse) choreography.interactions().getFirst();
 
-        assertEquals(new Role("a", emptyPosition), requestResponse.sourceRole());
+        assertEquals(createRole("a"), requestResponse.sourceRole());
         assertInstanceOf(Expression.class, requestResponse.sourceExpression());
-        assertEquals(new Media("M", emptyPosition), requestResponse.media());
-        assertEquals(new Variable("x", emptyPosition), requestResponse.targetVariable());
-        assertEquals(new Role("b", emptyPosition), requestResponse.targetRole());
-        assertEquals(new Variable("y", emptyPosition), requestResponse.sourceVariable());
+        assertEquals(createMedia("M"), requestResponse.media());
+        assertEquals(createVariable("x"), requestResponse.targetVariable());
+        assertEquals(createRole("b"), requestResponse.targetRole());
+        assertEquals(createVariable("y"), requestResponse.sourceVariable());
     }
 
     @Test
@@ -238,7 +239,7 @@ public class AstOptimizerTest {
 
         End end = (End) choreography.interactions().getFirst();
 
-        assertEquals(new Role("f", emptyPosition), end.endingRole());
+        assertEquals(createRole("f"), end.endingRole());
     }
 
     @Test
@@ -251,8 +252,8 @@ public class AstOptimizerTest {
         EndResponse endResponse = (EndResponse) choreography.interactions().getFirst();
 
         assertInstanceOf(Expression.class, endResponse.expression());
-        assertEquals(new Role("f", emptyPosition), endResponse.endingRole());
-        assertEquals(new Role("n", emptyPosition), endResponse.targetRole());
+        assertEquals(createRole("f"), endResponse.endingRole());
+        assertEquals(createRole("n"), endResponse.targetRole());
     }
 
     @Test
@@ -265,7 +266,7 @@ public class AstOptimizerTest {
         Conditional conditional = (Conditional) choreography.interactions().getFirst();
 
         assertInstanceOf(Expression.class, conditional.condition());
-        assertEquals(new Role("n", emptyPosition), conditional.targetRole());
+        assertEquals(createRole("n"), conditional.targetRole());
         assertInstanceOf(Choreography.class, conditional.ifBranch());
         assertInstanceOf(Choreography.class, conditional.elseBranch());
     }
@@ -306,15 +307,35 @@ public class AstOptimizerTest {
 
         ProcedureCall procedureCall = (ProcedureCall) choreography.interactions().getFirst();
 
-        assertEquals("X", procedureCall.name());
+        assertEquals("X", procedureCall.name().id());
         assertEquals(5, procedureCall.parameterList().size());
     }
 
     // HELPERS
 
+    private Role createRole(String id) {
+        Name name = new Name(id, emptyPosition);
+        return new Role(name, emptyPosition);
+    }
+
+    private Variable createVariable(String id) {
+        Name name = new Name(id, emptyPosition);
+        return new Variable(name, emptyPosition);
+    }
+
+    private Media createMedia(String id) {
+        Name name = new Name(id, emptyPosition);
+        return new Media(name, emptyPosition);
+    }
+
+    private Label createLabel(String id) {
+        Name name = new Name(id, emptyPosition);
+        return new Label(name, emptyPosition);
+    }
+
     private OrderingCouple createOrderingCouple(String leftRoleName, String rightRoleName) {
-        Role leftRole = new Role(leftRoleName, emptyPosition);
-        Role rightRole = new Role(rightRoleName, emptyPosition);
+        Role leftRole = createRole(leftRoleName);
+        Role rightRole = createRole(rightRoleName);
 
         return new OrderingCouple(leftRole, rightRole, emptyPosition);
     }

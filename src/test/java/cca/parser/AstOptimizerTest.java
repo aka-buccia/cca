@@ -316,11 +316,7 @@ public class AstOptimizerTest {
         Role leftRole = new Role(leftRoleName, emptyPosition);
         Role rightRole = new Role(rightRoleName, emptyPosition);
 
-        return new OrderingCouple(leftRole, rightRole, emptyPosition());
-    }
-
-    private Position emptyPosition() {
-        return new Position(null, -1, -1);
+        return new OrderingCouple(leftRole, rightRole, emptyPosition);
     }
 
     private Program parseProgram(String code) {

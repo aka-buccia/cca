@@ -8,6 +8,7 @@ import cca.ast.Program;
 import cca.ast.Role;
 import cca.ast.Media;
 import cca.ast.Label;
+import cca.ast.Name;
 import cca.ast.choreography.*;
 import cca.ast.expression.*;
 import cca.ast.procedure.*;
@@ -48,7 +49,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Procedure visitProcedure(FaaSChalCoreParser.ProcedureContext ctx) {
-        String name = ctx.procedureName().getText();
+        Name name = visitProcedureName(ctx.procedureName());
 
         ProcedureParameterList parameters = visitProcedureParameters(ctx.procedureParameters());
         TerminationOrder terminationOrder = isPresent(ctx.terminationOrder())
@@ -97,13 +98,14 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Role visitRole(FaaSChalCoreParser.RoleContext ctx) {
-
-        return new Role(ctx.ID().getText(), getPosition(ctx));
+        Name name = new Name(ctx.ID().getText(), getPosition(ctx));
+        return new Role(name, getPosition(ctx));
     }
 
     @Override
     public Variable visitVariable(FaaSChalCoreParser.VariableContext ctx) {
-        return new Variable(ctx.ID().getText(), getPosition(ctx));
+        Name name = new Name(ctx.ID().getText(), getPosition(ctx));
+        return new Variable(name, getPosition(ctx));
     }
 
     @Override
@@ -177,11 +179,16 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public LocalFunction visitFunction(FaaSChalCoreParser.FunctionContext ctx) {
 
-        String id = ctx.ID().getText();
+        Name name = visitFunctionName(ctx.functionName());
         List<Expression> parameters = ifPresent(ctx.functionParameters()).applyOrElse(this::visitFunctionParameters,
                 Collections::emptyList);
 
-        return new LocalFunction(id, parameters, getPosition(ctx));
+        return new LocalFunction(name, parameters, getPosition(ctx));
+    }
+
+    @Override
+    public Name visitFunctionName(FaaSChalCoreParser.FunctionNameContext ctx) {
+        return new Name(ctx.ID().getText(), getPosition(ctx));
     }
 
     @Override
@@ -234,8 +241,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Media visitMedia(FaaSChalCoreParser.MediaContext ctx) {
-        String id = ctx.ID().getText();
-        return new Media(id, getPosition(ctx));
+        Name name = new Name(ctx.ID().getText(), getPosition(ctx));
+        return new Media(name, getPosition(ctx));
     }
 
     @Override
@@ -249,8 +256,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     @Override
     public Label visitLabel(FaaSChalCoreParser.LabelContext ctx) {
-        String id = ctx.ID().getText();
-        return new Label(id, getPosition(ctx));
+        Name name = new Name(ctx.ID().getText(), getPosition(ctx));
+        return new Label(name, getPosition(ctx));
     }
 
     @Override
@@ -292,15 +299,15 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public ProcedureCall visitProcedureCall(FaaSChalCoreParser.ProcedureCallContext ctx) {
 
-        String name = visitProcedureName(ctx.procedureName());
+        Name name = visitProcedureName(ctx.procedureName());
         ProcedureParameterList parameters = visitProcedureParameters(ctx.procedureParameters());
         return new ProcedureCall(name, parameters, getPosition(ctx));
     }
 
     @Override
-    public String visitProcedureName(FaaSChalCoreParser.ProcedureNameContext ctx) {
+    public Name visitProcedureName(FaaSChalCoreParser.ProcedureNameContext ctx) {
 
-        return ctx.ID().getText();
+        return new Name(ctx.ID().getText(), getPosition(ctx));
     }
 
     @Override

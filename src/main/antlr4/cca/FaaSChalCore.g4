@@ -20,6 +20,7 @@ constant: INT
         ; 
 label: ID ;
 procedureName: ID ;
+functionName: ID ;
 
 interaction: communication
           | selection
@@ -41,7 +42,7 @@ expression: constant
           | variable
           | function
           ;
-function: ID '(' functionParameters? ')' ;
+function: functionName '(' functionParameters? ')' ;
 functionParameters: expression (',' expression)* ;
 
 request: expression '@' role '-' media '->' variable '@' role ;

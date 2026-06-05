@@ -4,21 +4,21 @@ import cca.ast.visitors.VisitorInterface;
 
 public class Media extends Node {
 
-    private final String id;
+    private final Name name;
 
-    public Media(String id, Position position) {
-        this.id = id;
+    public Media(Name name, Position position) {
+        this.name = name;
         super(position);
     }
 
-    public String id() {
-        return this.id;
+    public Name name() {
+        return this.name;
     }
 
     @Override
     public boolean equals(final Object o) {
         if (o instanceof Media) {
-            return this.id.equals(((Media) o).id());
+            return this.name.equals(((Media) o).name());
         } else {
             return false;
         }

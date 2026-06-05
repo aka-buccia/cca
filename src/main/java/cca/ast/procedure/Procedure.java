@@ -2,18 +2,19 @@ package cca.ast.procedure;
 
 import cca.ast.Node;
 import cca.ast.Position;
+import cca.ast.Name;
 import cca.ast.choreography.Choreography;
 import cca.ast.visitors.VisitorInterface;
 
 public class Procedure extends Node {
 
-    private final String name;
+    private final Name name;
     private final ProcedureParameterList parameterList;
     private final TerminationOrder terminationOrder;
     private final Choreography choreography;
 
     public Procedure(
-            String name,
+            Name name,
             ProcedureParameterList parameterList,
             TerminationOrder terminationOrder,
             Choreography choreography,
@@ -26,7 +27,7 @@ public class Procedure extends Node {
 
     }
 
-    public String id() {
+    public Name name() {
         return this.name;
     }
 

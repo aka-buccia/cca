@@ -4,10 +4,10 @@ import cca.ast.visitors.VisitorInterface;
 
 public class Role extends Node {
 
-    private final String id;
+    private final Name name;
 
-    public Role(String id, Position position) {
-        this.id = id;
+    public Role(Name name, Position position) {
+        this.name = name;
         super(position);
     }
 
@@ -16,22 +16,17 @@ public class Role extends Node {
         return v.visit(this);
     }
 
-    public String id() {
-        return id;
+    public Name name() {
+        return name;
     }
 
     @Override
     public boolean equals(final Object o) {
         if (o instanceof Role) {
-            return this.id.equals(((Role) o).id());
+            return this.name.equals(((Role) o).name());
         } else {
             return false;
         }
-    }
-
-    @Override
-    public String toString() {
-        return id();
     }
 
 }

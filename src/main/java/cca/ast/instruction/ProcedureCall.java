@@ -1,21 +1,22 @@
 package cca.ast.instruction;
 
 import cca.ast.Position;
+import cca.ast.Name;
 import cca.ast.visitors.VisitorInterface;
 import cca.ast.procedure.ProcedureParameterList;
 
 public class ProcedureCall extends Instruction {
 
-    private final String name;
+    private final Name name;
     private final ProcedureParameterList parameterList;
 
-    public ProcedureCall(String name, ProcedureParameterList parameterList, Position position) {
+    public ProcedureCall(Name name, ProcedureParameterList parameterList, Position position) {
         this.name = name;
         this.parameterList = parameterList;
         super(position);
     }
 
-    public String name() {
+    public Name name() {
         return this.name;
     }
 

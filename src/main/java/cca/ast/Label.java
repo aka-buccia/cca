@@ -4,21 +4,21 @@ import cca.ast.visitors.VisitorInterface;
 
 public class Label extends Node {
 
-    private final String id;
+    private final Name name;
 
-    public Label(String id, Position position) {
-        this.id = id;
+    public Label(Name name, Position position) {
+        this.name = name;
         super(position);
     }
 
-    public String id() {
-        return this.id;
+    public Name name() {
+        return this.name;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof Label) {
-            return this.id.equals(((Label) o).id());
+            return this.name.equals(((Label) o).name());
         } else {
             return false;
         }

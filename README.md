@@ -6,8 +6,8 @@ FaaSChalCore is a choreographic calculus containing the key features of the FaaS
 FaaSChal is a coreographic programming language tailored for serverless Function-as-a-Service architectures.
 
 ## Features
-- Parser (in development)
-- PrettyPrinter (coming soon)
+- Parser
+- PrettyPrinter (in development)
 - Static Checker (final goal)
 
 ## Credits

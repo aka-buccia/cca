@@ -34,6 +34,15 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     private String file = "";
 
+    private AstOptimizer() {
+    }
+
+    // Factory method
+    public static AstOptimizer create() {
+        AstOptimizer optimizer = new AstOptimizer();
+        return optimizer;
+    }
+
     public Program optimise(FaaSChalCoreParser.ProgramContext ctx, String file) {
         this.file = file;
         return visitProgram(ctx);

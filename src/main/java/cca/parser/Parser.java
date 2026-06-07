@@ -22,10 +22,9 @@ public class Parser {
         parser.addErrorListener(errorListener);
 
         FaaSChalCoreParser.ProgramContext ctx = parser.program();
-        AstOptimizer optimizer = new AstOptimizer();
 
         if (errorListener.getErrors().isEmpty()) {
-            return optimizer.visitProgram(ctx);
+            return AstOptimizer.create().optimise(ctx, fileName);
         } else {
             throw new CompoundException(errorListener.getErrors());
         }

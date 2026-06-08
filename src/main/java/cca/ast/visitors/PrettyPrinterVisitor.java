@@ -192,6 +192,23 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
+    public String visit(Assignment n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(visit(n.variable()));
+        sb.append(AT);
+        sb.append(visit(n.targetRole()));
+
+        sb.append(" ").append("=").append(" ");
+
+        sb.append(visit(n.expression()));
+        sb.append(AT);
+        sb.append(visit(n.targetRole()));
+
+        return sb.toString();
+    }
+
+    @Override
     public String visit(Expression n) {
         return n.accept(this);
     }

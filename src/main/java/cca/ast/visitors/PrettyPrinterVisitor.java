@@ -209,6 +209,16 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
+    public String visit(End n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(END).append(" ");
+        sb.append(n.endingRole());
+
+        return sb.toString();
+    }
+
+    @Override
     public String visit(Expression n) {
         return n.accept(this);
     }

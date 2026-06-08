@@ -284,6 +284,18 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
+    public String visit(LocalFunction n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(visit(n.name()));
+        sb.append("(");
+        sb.append(visitAndCollect(n.parameters(), SPACED_COMMA));
+        sb.append(")");
+
+        return sb.toString();
+    }
+
+    @Override
     public String visit(Role n) {
         return visit(n.name());
     }

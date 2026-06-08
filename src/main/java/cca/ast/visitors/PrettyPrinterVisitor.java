@@ -234,6 +234,27 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
+    public String visit(Conditional n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("if").append(" ");
+
+        sb.append(visit(n.condition()));
+        sb.append(AT);
+        sb.append(visit(n.targetRole()));
+
+        sb.append(" ").append("then").append(" ").append("{");
+
+        sb.append(indent(visit(n.ifBranch()))).append(NEWLINE);
+        sb.append("}").append(" ").append("else").append(" ").append("{");
+        sb.append(indent(visit(n.elseBranch()))).append(NEWLINE);
+
+        sb.append("}").append(NEWLINE);
+
+        return sb.toString();
+    }
+
+    @Override
     public String visit(Expression n) {
         return n.accept(this);
     }

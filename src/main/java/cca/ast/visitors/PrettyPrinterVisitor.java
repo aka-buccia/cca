@@ -180,6 +180,32 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
+    public String visit(RequestResponse n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(visit(n.sourceExpression()));
+        sb.append(AT);
+        sb.append(visit(n.sourceRole()));
+
+        sb.append(" ");
+        sb.append("<-");
+        sb.append(visit(n.media()));
+        sb.append("->");
+        sb.append(" ");
+
+        sb.append(visit(n.targetVariable()));
+        sb.append(AT);
+        sb.append(visit(n.targetRole()));
+
+        sb.append(" ").append("|>").append(" ");
+        sb.append(visit(n.sourceVariable()));
+        sb.append(AT);
+        sb.append(visit(n.sourceRole()));
+
+        return sb.toString();
+    }
+
+    @Override
     public String visit(Selection n) {
         StringBuilder sb = new StringBuilder();
 

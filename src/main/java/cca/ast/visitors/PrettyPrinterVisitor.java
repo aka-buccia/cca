@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import cca.ast.Label;
 import cca.ast.Media;
 import cca.ast.Name;
 import cca.ast.Node;
@@ -278,17 +279,22 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
-    public String visit(Variable n) {
-        return visit(n.name());
-    }
-
-    @Override
     public String visit(Role n) {
         return visit(n.name());
     }
 
     @Override
     public String visit(Media n) {
+        return visit(n.name());
+    }
+
+    @Override
+    public String visit(Variable n) {
+        return visit(n.name());
+    }
+
+    @Override
+    public String visit(Label n) {
         return visit(n.name());
     }
 

@@ -9,8 +9,8 @@ import cca.ast.Name;
 import cca.ast.Node;
 import cca.ast.Program;
 import cca.ast.Role;
-import cca.ast.choreography.Terminated;
-import cca.ast.procedure.Procedure;
+import cca.ast.choreography.*;
+import cca.ast.procedure.*;
 
 public class PrettyPrinterVisitor extends AbstractVisitor<String> {
 
@@ -44,15 +44,82 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
         sb.append(")");
 
         // termination order
-        sb.append(":");
-        sb.append("(");
-        sb.append(visit(n.terminationOrder()));
-        sb.append(")").append(" ");
+        if (!(n.terminationOrder() instanceof TerminationOrder.TerminationOrderDefault)) {
+            sb.append(":");
+            sb.append("(");
+            sb.append(visit(n.terminationOrder()));
+            sb.append(")").append(" ");
+        }
 
         // body
         sb.append("{").append(NEWLINE);
         sb.append(visit(n.choreography()));
         sb.append("}").append(NEWLINE);
+
+        return sb.toString();
+    }
+
+    @Override
+    public String visit(ProcedureParameterList n) {
+        StringBuilder sb = new StringBuilder();
+
+        if (!n.statefulParameters().isEmpty()) {
+            sb.append("stateful").append(" ");
+            sb.append(visitAndCollect(n.statefulParameters(), SPACED_COMMA));
+            sb.append(SPACED_COMMA);
+        }
+
+        if (!n.nonTerminatingParameters().isEmpty()) {
+            sb.append("non term").append(" ");
+            sb.append(visitAndCollect(n.nonTerminatingParameters(), SPACED_COMMA));
+            sb.append(SPACED_COMMA);
+        }
+
+        if (!n.terminatingParameters().isEmpty()) {
+            sb.append("term").append(" ");
+            sb.append(visitAndCollect(n.terminatingParameters(), SPACED_COMMA));
+        }
+
+        return sb.toString();
+    }
+
+    @Override
+    public String visit(StatefulParameter n) {
+        return visit(n.parameter());
+    }
+
+    @Override
+    public String visit(NonTerminatingParameter n) {
+        return visit(n.parameter());
+    }
+
+    @Override
+    public String visit(TerminatingParameter n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(visit(n.createdRole()));
+
+        if (n.creatorRole() == null) {
+            sb.append("0");
+        } else {
+            sb.append(visit(n.creatorRole()));
+        }
+
+        return sb.toString();
+    }
+
+    @Override
+    public String visit(TerminationOrder n) {
+        return visitAndCollect(n.elements(), SPACED_COMMA);
+    }
+
+    @Override
+    public String visit(OrderingCouple n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(visit(n.left()));
+        sb.append("<:");
+        sb.append(visit(n.right()));
 
         return sb.toString();
     }

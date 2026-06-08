@@ -30,6 +30,8 @@ public interface VisitorInterface<R> {
 
     R visit(Request n);
 
+    R visit(RequestResponse n);
+
     R visit(Selection n);
 
     R visit(Assignment n);

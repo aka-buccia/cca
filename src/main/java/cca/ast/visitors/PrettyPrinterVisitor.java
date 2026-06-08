@@ -10,6 +10,7 @@ import cca.ast.Node;
 import cca.ast.Program;
 import cca.ast.Role;
 import cca.ast.choreography.*;
+import cca.ast.instruction.Instruction;
 import cca.ast.procedure.*;
 
 public class PrettyPrinterVisitor extends AbstractVisitor<String> {
@@ -122,6 +123,21 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
         sb.append(visit(n.right()));
 
         return sb.toString();
+    }
+
+    @Override
+    public String visit(Choreography n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(indent(visitAndCollect(n.interactions(), SEMICOLON)));
+        sb.append(indent(visit(n.termination())));
+
+        return sb.toString();
+    }
+
+    @Override
+    public String visit(Instruction n) {
+
     }
 
     @Override

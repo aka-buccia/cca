@@ -249,7 +249,19 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
         sb.append("}").append(" ").append("else").append(" ").append("{");
         sb.append(indent(visit(n.elseBranch()))).append(NEWLINE);
 
-        sb.append("}").append(NEWLINE);
+        sb.append("}");
+
+        return sb.toString();
+    }
+
+    @Override
+    public String visit(ProcedureCall n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(visit(n.name()));
+        sb.append("(");
+        sb.append(visit(n.parameterList()));
+        sb.append(")");
 
         return sb.toString();
     }

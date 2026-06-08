@@ -279,6 +279,11 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
+    public String visit(Constant<?> n) {
+        return n.value().toString();
+    }
+
+    @Override
     public String visit(Role n) {
         return visit(n.name());
     }

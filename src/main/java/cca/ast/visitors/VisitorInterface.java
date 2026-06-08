@@ -50,6 +50,8 @@ public interface VisitorInterface<R> {
 
     R visit(TerminatingParameter n);
 
+    R visit(Expression n);
+
     R visit(Constant<?> n);
 
     R visit(LocalFunction n);

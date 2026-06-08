@@ -5,11 +5,8 @@ import cca.ast.Role;
 import cca.ast.Media;
 import cca.ast.Label;
 import cca.ast.Name;
-import cca.ast.choreography.Choreography;
-import cca.ast.choreography.Terminated;
-import cca.ast.expression.Constant;
-import cca.ast.expression.LocalFunction;
-import cca.ast.expression.Variable;
+import cca.ast.choreography.*;
+import cca.ast.expression.*;
 import cca.ast.procedure.*;
 import cca.ast.instruction.*;
 
@@ -42,6 +39,11 @@ public abstract class AbstractVisitor<T> implements VisitorInterface<T> {
 
     @Override
     public T visit(Terminated n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T visit(Instruction n) {
         throw new UnsupportedOperationException();
     }
 

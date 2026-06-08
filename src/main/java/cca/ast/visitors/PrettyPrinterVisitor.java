@@ -137,7 +137,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
 
     @Override
     public String visit(Instruction n) {
-
+        return n.accept(this);
     }
 
     @Override

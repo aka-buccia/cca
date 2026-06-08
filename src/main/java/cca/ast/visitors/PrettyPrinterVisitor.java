@@ -160,6 +160,20 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(Request n) {
         StringBuilder sb = new StringBuilder();
 
+        sb.append(visit(n.sourceExpression()));
+        sb.append(AT);
+        sb.append(visit(n.sourceRole()));
+
+        sb.append(" ");
+        sb.append("-");
+        sb.append(visit(n.media()));
+        sb.append("->");
+        sb.append(" ");
+
+        sb.append(visit(n.targetVariable()));
+        sb.append(AT);
+        sb.append(visit(n.targetRole()));
+
         return sb.toString();
     }
 

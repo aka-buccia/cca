@@ -10,7 +10,8 @@ import cca.ast.Node;
 import cca.ast.Program;
 import cca.ast.Role;
 import cca.ast.choreography.*;
-import cca.ast.instruction.Instruction;
+import cca.ast.expression.*;
+import cca.ast.instruction.*;
 import cca.ast.procedure.*;
 
 public class PrettyPrinterVisitor extends AbstractVisitor<String> {
@@ -29,7 +30,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
 
     @Override
     public String visit(Program n) {
-        return visitAndCollect(n.procedures(), NEWLINE);
+        return visitAndCollect(n.procedures(), _2NEWLINE);
     }
 
     @Override
@@ -55,7 +56,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
         // body
         sb.append("{").append(NEWLINE);
         sb.append(visit(n.choreography()));
-        sb.append("}").append(NEWLINE);
+        sb.append(NEWLINE).append("}");
 
         return sb.toString();
     }
@@ -129,7 +130,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(Choreography n) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(indent(visitAndCollect(n.instructions(), SEMICOLON)));
+        sb.append(indent(visitAndCollect(n.instructions(), SEMICOLON + NEWLINE)));
         sb.append(indent(visit(n.termination())));
 
         return sb.toString();
@@ -141,8 +142,33 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     }
 
     @Override
+    public String visit(Communication n) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(visit(n.expression()));
+        sb.append(AT);
+        sb.append(visit(n.leftRole()));
+        sb.append(" ").append(ARROW).append(" ");
+        sb.append(visit(n.variable()));
+        sb.append(AT);
+        sb.append(visit(n.rightRole()));
+
+        return sb.toString();
+    }
+
+    @Override
+    public String visit(Expression n) {
+        return n.accept(this);
+    }
+
+    @Override
     public String visit(Terminated n) {
         return TERMINATION;
+    }
+
+    @Override
+    public String visit(Variable n) {
+        return visit(n.name());
     }
 
     @Override

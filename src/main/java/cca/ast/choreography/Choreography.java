@@ -17,7 +17,7 @@ public class Choreography extends Node {
         super(position);
     }
 
-    public List<Instruction> interactions() {
+    public List<Instruction> instructions() {
         return this.instructions;
     }
 

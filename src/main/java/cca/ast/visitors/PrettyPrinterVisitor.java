@@ -129,7 +129,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(Choreography n) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(indent(visitAndCollect(n.interactions(), SEMICOLON)));
+        sb.append(indent(visitAndCollect(n.instructions(), SEMICOLON)));
         sb.append(indent(visit(n.termination())));
 
         return sb.toString();

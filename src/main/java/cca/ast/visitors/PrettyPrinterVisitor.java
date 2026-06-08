@@ -160,11 +160,19 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(Request n) {
         StringBuilder sb = new StringBuilder();
 
+        return sb.toString();
+    }
+
+    @Override
+    public String visit(Selection n) {
+        StringBuilder sb = new StringBuilder();
+
         sb.append(visit(n.sourceRole()));
         sb.append(" ").append(ARROW).append(" ");
-        sb.append(visit(n.targetVariable()));
-        sb.append(AT);
         sb.append(visit(n.targetRole()));
+        sb.append("[");
+        sb.append(visit(n.label()));
+        sb.append("]");
 
         return sb.toString();
     }

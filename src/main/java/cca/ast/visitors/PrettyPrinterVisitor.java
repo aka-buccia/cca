@@ -66,19 +66,24 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     @Override
     public String visit(ProcedureParameterList n) {
         StringBuilder sb = new StringBuilder();
+        boolean first = true;
 
         if (!n.statefulParameters().isEmpty()) {
             sb.append(visitAndCollect(n.statefulParameters(), SPACED_COMMA));
-            sb.append(SPACED_COMMA);
+            first = false;
         }
 
         if (!n.nonTerminatingParameters().isEmpty()) {
+            if (!first)
+                sb.append(SPACED_COMMA);
             sb.append("non term").append(" ");
             sb.append(visitAndCollect(n.nonTerminatingParameters(), SPACED_COMMA));
-            sb.append(SPACED_COMMA);
+            first = false;
         }
 
         if (!n.terminatingParameters().isEmpty()) {
+            if (!first)
+                sb.append(SPACED_COMMA);
             sb.append("term").append(" ");
             sb.append(visitAndCollect(n.terminatingParameters(), SPACED_COMMA));
         }

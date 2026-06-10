@@ -60,11 +60,8 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
             try {
                 for (Path source : sources) {
 
-                    // Read file
-                    String content = Files.readString(source);
-
                     // Parse
-                    Program p = Parser.parseSourceCode(content);
+                    Program p = Parser.parseSourceFile(source.toFile());
 
                     // Pretty-print
                     String prettyCode = printer.visit(p);
@@ -234,7 +231,7 @@ abstract class FaaSChalCoreCommand {
                         baseLineNum + i, snippetLines.get(i)));
                 if (baseLineNum + i == lineNum) {
                     sb.append(" ".repeat(p.column() + 6))
-                            .append("^%n");
+                            .append("^\n");
                 }
             }
             return sb.toString();

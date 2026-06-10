@@ -281,9 +281,15 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
 
         sb.append(" ").append("then").append(" ").append("{");
 
-        sb.append(indent(visit(n.ifBranch()))).append(NEWLINE);
+        sb.append(NEWLINE);
+        sb.append(indent(visit(n.ifBranch())));
+        sb.append(NEWLINE);
+
         sb.append("}").append(" ").append("else").append(" ").append("{");
-        sb.append(indent(visit(n.elseBranch()))).append(NEWLINE);
+
+        sb.append(NEWLINE);
+        sb.append(indent(visit(n.elseBranch())));
+        sb.append(NEWLINE);
 
         sb.append("}");
 

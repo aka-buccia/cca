@@ -52,11 +52,11 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
             sb.append(":");
             sb.append("(");
             sb.append(visit(n.terminationOrder()));
-            sb.append(")").append(" ");
+            sb.append(")");
         }
 
         // body
-        sb.append("{").append(NEWLINE);
+        sb.append(" ").append("{").append(NEWLINE);
         sb.append(visit(n.choreography()));
         sb.append(NEWLINE).append("}");
 
@@ -101,13 +101,17 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(TerminatingParameter n) {
         StringBuilder sb = new StringBuilder();
 
+        sb.append("[");
         sb.append(visit(n.createdRole()));
+        sb.append(SPACED_COMMA);
 
         if (n.creatorRole() == null) {
             sb.append("0");
         } else {
             sb.append(visit(n.creatorRole()));
         }
+
+        sb.append("]");
 
         return sb.toString();
     }
@@ -132,7 +136,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(Choreography n) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(indent(visitAndCollect(n.instructions(), SEMICOLON + NEWLINE)));
+        sb.append(indent(visitAndCollect(n.instructions(), SEMICOLON + NEWLINE, SEMICOLON + NEWLINE)));
         sb.append(indent(visit(n.termination())));
 
         return sb.toString();

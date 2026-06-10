@@ -57,7 +57,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
 
         // body
         sb.append(" ").append("{").append(NEWLINE);
-        sb.append(visit(n.choreography()));
+        sb.append(indent(visit(n.choreography())));
         sb.append(NEWLINE).append("}");
 
         return sb.toString();
@@ -135,8 +135,8 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(Choreography n) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(indent(visitAndCollect(n.instructions(), SEMICOLON + NEWLINE, SEMICOLON + NEWLINE)));
-        sb.append(indent(visit(n.termination())));
+        sb.append(visitAndCollect(n.instructions(), SEMICOLON + NEWLINE, SEMICOLON + NEWLINE));
+        sb.append(visit(n.termination()));
 
         return sb.toString();
     }

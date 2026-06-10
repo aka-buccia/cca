@@ -245,7 +245,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
         StringBuilder sb = new StringBuilder();
 
         sb.append(END).append(" ");
-        sb.append(n.endingRole());
+        sb.append(visit(n.endingRole()));
 
         return sb.toString();
     }

@@ -68,7 +68,6 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
         StringBuilder sb = new StringBuilder();
 
         if (!n.statefulParameters().isEmpty()) {
-            sb.append("stateful").append(" ");
             sb.append(visitAndCollect(n.statefulParameters(), SPACED_COMMA));
             sb.append(SPACED_COMMA);
         }

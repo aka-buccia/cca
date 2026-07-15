@@ -7,7 +7,7 @@ public class SyntaxException extends FaaSChalCoreException {
     private final Position position;
 
     public SyntaxException(Position position, String message) {
-        super(String.format("Error at %s: %s", position, message));
+        super(message);
         this.position = position;
     }
 

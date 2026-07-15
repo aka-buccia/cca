@@ -3,8 +3,8 @@ package cca;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +26,7 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 @Command(name = "faasch", description = "A toolkit for parsing and formatting of FaaSChalCore choreographies", subcommands = {
-        FaaSChalCore.PrettyPrinter.class
-})
+        FaaSChalCore.PrettyPrinter.class }, mixinStandardHelpOptions = true)
 public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Integer> {
 
     public static void main(String[] args) {
@@ -36,6 +35,7 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
 
     public static int compile(String[] args) {
         CommandLine cl = new CommandLine(new FaaSChalCore());
+        cl.setUnmatchedOptionsArePositionalParams(true);
         return cl.execute(args);
     }
 
@@ -88,7 +88,6 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
     }
 }
 
-@Command()
 class VerbosityOptions {
 
     private VerbosityLevel verbosity = VerbosityLevel.INFO;
@@ -103,14 +102,16 @@ class VerbosityOptions {
         this.verbosity = value;
     }
 
-    @Option(names = { "-q", "--quiet" }, description = "Disable all messages except errors")
+    @Option(names = { "-q",
+            "--quiet" }, description = "Disable all messages except errors")
     private void setQuietLevel(boolean value) {
         if (value) {
             this.setVerbosity(VerbosityLevel.ERRORS);
         }
     }
 
-    @Option(names = { "--debug", "--verbose", "-d" }, description = "Enable debug messages")
+    @Option(names = { "--debug", "--verbose",
+            "-d" }, description = "Enable debug messages")
     private void setDebugLevel(boolean value) {
         if (value) {
             this.setVerbosity(VerbosityLevel.DEBUG);
@@ -153,7 +154,7 @@ abstract class PathOption {
 
     public final static class SourcePathOption extends PathOption {
         @Option(names = { "-s",
-                "--sources" }, paramLabel = "<PATH>", description = "Specify where to find faasch source files")
+                "--sources" }, paramLabel = "<PATH>", description = "Specify where to find .faasch source files")
         @Override
         protected void setValue(String value) {
             super.setValue(value);
@@ -180,7 +181,6 @@ class OutputOptions {
     }
 }
 
-@Command(mixinStandardHelpOptions = true)
 abstract class FaaSChalCoreCommand {
 
     @Mixin
@@ -194,13 +194,7 @@ abstract class FaaSChalCoreCommand {
 
         if (e instanceof SyntaxException se) {
             Position p = se.getPosition();
-            System.err.printf(
-                    "%1$s:%2$d:%3$d: error: %4$s.%n%n%5$s%n",
-                    p.sourceFile(),
-                    p.line(),
-                    p.column(),
-                    se.getMessage(),
-                    formattedSnippet(p));
+            System.err.print(String.format("Error at %s: %s.\n%s", p, se.getMessage(), formattedSnippet(p)));
             if (verbosity == VerbosityLevel.DEBUG) {
                 e.printStackTrace();
             }
@@ -209,7 +203,7 @@ abstract class FaaSChalCoreCommand {
                 printNiceErrorMessage(f, verbosity);
             }
         } else {
-            System.err.println("error: " + e.getMessage());
+            System.err.println("Error:" + e.getMessage());
             if (verbosity == VerbosityLevel.DEBUG) {
                 e.printStackTrace();
             }
@@ -226,12 +220,24 @@ abstract class FaaSChalCoreCommand {
 
             StringBuilder sb = new StringBuilder();
             int baseLineNum = Math.max(1, lineNum - 1);
+
+            int maxDigits = String.valueOf(lineNum + 1).length();
+
             for (int i = 0; i < snippetLines.size(); i++) {
-                sb.append(String.format("  %d | %s%n",
-                        baseLineNum + i, snippetLines.get(i)));
+                int currentLineNum = baseLineNum + i;
+                int digits = String.valueOf(currentLineNum).length();
+                int leftPad = 2 + (maxDigits - digits);
+
+                String linePrefix = " ".repeat(leftPad) + currentLineNum + " | ";
+                sb.append(linePrefix)
+                        .append(snippetLines.get(i))
+                        .append('\n');
+
                 if (baseLineNum + i == lineNum) {
-                    sb.append(" ".repeat(p.column() + 6))
-                            .append("^\n");
+                    int caretIndent = linePrefix.length() + Math.max(0, p.column() - 1);
+                    sb.append(" ".repeat(caretIndent))
+                            .append('^')
+                            .append('\n');
                 }
             }
             return sb.toString();

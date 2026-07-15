@@ -406,7 +406,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     // Method for extracting token position
     private Position getPosition(Token t) {
-        return new Position(this.file, t.getLine(), t.getCharPositionInLine());
+        return new Position(this.file, t.getLine(), t.getCharPositionInLine() + 1);
     }
 
     private Position getPosition(ParserRuleContext c) {

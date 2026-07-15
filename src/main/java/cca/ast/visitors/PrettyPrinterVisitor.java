@@ -32,7 +32,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
 
     @Override
     public String visit(Program n) {
-        return visitAndCollect(n.procedures(), _2NEWLINE);
+        return visitAndCollect(n.procedures(), _2NEWLINE, NEWLINE);
     }
 
     @Override
@@ -369,7 +369,7 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
 
     protected final <T extends Node> String visitAndCollect(
             List<T> list, String delimiter, String closure) {
-        return visitAndCollect(list, delimiter) + (list.isEmpty() ? " " : closure);
+        return visitAndCollect(list, delimiter) + (list.isEmpty() ? "" : closure);
     }
 
     protected final String indent(String s) {

@@ -4,8 +4,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Position {
-    private final int line;
-    private final int column;
+    private final int line; // 1..n
+    private final int column; // 1..n
     private final String sourceFile;
 
     public Position(String sourceFile, int line, int column) {
@@ -32,7 +32,7 @@ public class Position {
         } else {
             Path absolutePath = Paths.get(sourceFile).toAbsolutePath();
 
-            // ottiene la path attuale e così da salvare la path relativa
+            // gets the current path to save the relative path
             Path relativePath = Paths.get(".").toAbsolutePath().relativize(absolutePath);
             return String.format("file '%s' line %d column %d", relativePath, line, column);
         }

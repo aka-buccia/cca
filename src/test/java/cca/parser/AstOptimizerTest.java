@@ -96,10 +96,10 @@ public class AstOptimizerTest {
     public void parseCommunication() {
         Choreography choreography = parseChoreography("42@a -> x@b");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(Communication.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(Communication.class, choreography.instructions().getFirst());
 
-        Communication communication = (Communication) choreography.interactions().getFirst();
+        Communication communication = (Communication) choreography.instructions().getFirst();
 
         assertEquals(createRole("a"), communication.leftRole());
         assertEquals(createRole("b"), communication.rightRole());
@@ -108,7 +108,7 @@ public class AstOptimizerTest {
     @Test
     public void parseConstantInteger() {
         Choreography choreography = parseChoreography("42@a -> x@b");
-        Communication communication = (Communication) choreography.interactions().getFirst();
+        Communication communication = (Communication) choreography.instructions().getFirst();
 
         assertInstanceOf(Constant.ConstantInt.class, communication.expression());
 
@@ -120,7 +120,7 @@ public class AstOptimizerTest {
     @Test
     public void parseConstantString() {
         Choreography choreography = parseChoreography("\"hi\"@a -> x@b");
-        Communication communication = (Communication) choreography.interactions().getFirst();
+        Communication communication = (Communication) choreography.instructions().getFirst();
 
         assertInstanceOf(Constant.ConstantString.class, communication.expression());
 
@@ -132,7 +132,7 @@ public class AstOptimizerTest {
     @Test
     public void parseVariable() {
         Choreography choreography = parseChoreography("42@a -> x@b");
-        Communication communication = (Communication) choreography.interactions().getFirst();
+        Communication communication = (Communication) choreography.instructions().getFirst();
 
         assertInstanceOf(Variable.class, communication.variable());
 
@@ -144,7 +144,7 @@ public class AstOptimizerTest {
     @Test
     public void parseLocalFunctionCallWithoutParameters() {
         Choreography choreography = parseChoreography("order()@a -> x@b");
-        Communication communication = (Communication) choreography.interactions().getFirst();
+        Communication communication = (Communication) choreography.instructions().getFirst();
 
         assertInstanceOf(LocalFunction.class, communication.expression());
 
@@ -157,7 +157,7 @@ public class AstOptimizerTest {
     @Test
     public void parseLocalFunctionCallWithFunctionParameters() {
         Choreography choreography = parseChoreography("order(\"first\", 2)@a -> x@b");
-        Communication communication = (Communication) choreography.interactions().getFirst();
+        Communication communication = (Communication) choreography.instructions().getFirst();
         LocalFunction function = (LocalFunction) communication.expression();
 
         assertInstanceOf(List.class, function.parameters());
@@ -173,10 +173,10 @@ public class AstOptimizerTest {
     public void parseRequest() {
         Choreography choreography = parseChoreography("title@a -M-> x@b");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(Request.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(Request.class, choreography.instructions().getFirst());
 
-        Request request = (Request) choreography.interactions().getFirst();
+        Request request = (Request) choreography.instructions().getFirst();
 
         assertEquals(createRole("a"), request.sourceRole());
         assertInstanceOf(Expression.class, request.sourceExpression());
@@ -189,10 +189,10 @@ public class AstOptimizerTest {
     public void parseSelection() {
         Choreography choreography = parseChoreography("p -> q[L]");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(Selection.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(Selection.class, choreography.instructions().getFirst());
 
-        Selection request = (Selection) choreography.interactions().getFirst();
+        Selection request = (Selection) choreography.instructions().getFirst();
 
         assertEquals(createRole("p"), request.sourceRole());
         assertEquals(createLabel("L"), request.label());
@@ -203,10 +203,10 @@ public class AstOptimizerTest {
     public void parseAssignment() {
         Choreography choreography = parseChoreography("x@n = sum(2, 3)@n");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(Assignment.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(Assignment.class, choreography.instructions().getFirst());
 
-        Assignment request = (Assignment) choreography.interactions().getFirst();
+        Assignment request = (Assignment) choreography.instructions().getFirst();
 
         assertEquals(createRole("n"), request.targetRole());
         assertEquals(createVariable("x"), request.variable());
@@ -217,10 +217,10 @@ public class AstOptimizerTest {
     public void parseRequestResponse() {
         Choreography choreography = parseChoreography("title@a <-M-> x@b |> y@a");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(RequestResponse.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(RequestResponse.class, choreography.instructions().getFirst());
 
-        RequestResponse requestResponse = (RequestResponse) choreography.interactions().getFirst();
+        RequestResponse requestResponse = (RequestResponse) choreography.instructions().getFirst();
 
         assertEquals(createRole("a"), requestResponse.sourceRole());
         assertInstanceOf(Expression.class, requestResponse.sourceExpression());
@@ -234,10 +234,10 @@ public class AstOptimizerTest {
     public void parseEnd() {
         Choreography choreography = parseChoreography("end f");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(End.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(End.class, choreography.instructions().getFirst());
 
-        End end = (End) choreography.interactions().getFirst();
+        End end = (End) choreography.instructions().getFirst();
 
         assertEquals(createRole("f"), end.endingRole());
     }
@@ -246,10 +246,10 @@ public class AstOptimizerTest {
     public void parseEndResponse() {
         Choreography choreography = parseChoreography("end \"bye\"@f -> n");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(EndResponse.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(EndResponse.class, choreography.instructions().getFirst());
 
-        EndResponse endResponse = (EndResponse) choreography.interactions().getFirst();
+        EndResponse endResponse = (EndResponse) choreography.instructions().getFirst();
 
         assertInstanceOf(Expression.class, endResponse.expression());
         assertEquals(createRole("f"), endResponse.endingRole());
@@ -260,10 +260,10 @@ public class AstOptimizerTest {
     public void parseConditionalWithoutProsecution() {
         Choreography choreography = parseChoreography("if received()@n then {n->q[OK]} else {0}");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(Conditional.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(Conditional.class, choreography.instructions().getFirst());
 
-        Conditional conditional = (Conditional) choreography.interactions().getFirst();
+        Conditional conditional = (Conditional) choreography.instructions().getFirst();
 
         assertInstanceOf(Expression.class, conditional.condition());
         assertEquals(createRole("n"), conditional.targetRole());
@@ -275,10 +275,10 @@ public class AstOptimizerTest {
     public void parseConditionalWithoutElse() {
         Choreography choreography = parseChoreography("if received()@n then {n->q[OK]}");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(Conditional.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(Conditional.class, choreography.instructions().getFirst());
 
-        Conditional conditional = (Conditional) choreography.interactions().getFirst();
+        Conditional conditional = (Conditional) choreography.instructions().getFirst();
 
         assertInstanceOf(Expression.class, conditional.condition());
         assertInstanceOf(Terminated.TerminatedOmitted.class, conditional.elseBranch().termination());
@@ -288,9 +288,9 @@ public class AstOptimizerTest {
     public void parseConditionalWithProsecution() {
         Choreography choreography = parseChoreography("if received()@n then {n->q[L]} else {0}; x@n = sum(2, 3)@n");
 
-        assertEquals(2, choreography.interactions().size());
-        assertInstanceOf(Conditional.class, choreography.interactions().getFirst());
-        assertInstanceOf(Assignment.class, choreography.interactions().getLast());
+        assertEquals(2, choreography.instructions().size());
+        assertInstanceOf(Conditional.class, choreography.instructions().getFirst());
+        assertInstanceOf(Assignment.class, choreography.instructions().getLast());
     }
 
     @Test
@@ -302,10 +302,10 @@ public class AstOptimizerTest {
     public void parseProcedureCallWithAllParams() {
         Choreography choreography = parseChoreography("X(a, b, nonterm c, term [g, f], e)");
 
-        assertEquals(1, choreography.interactions().size());
-        assertInstanceOf(ProcedureCall.class, choreography.interactions().getFirst());
+        assertEquals(1, choreography.instructions().size());
+        assertInstanceOf(ProcedureCall.class, choreography.instructions().getFirst());
 
-        ProcedureCall procedureCall = (ProcedureCall) choreography.interactions().getFirst();
+        ProcedureCall procedureCall = (ProcedureCall) choreography.instructions().getFirst();
 
         assertEquals("X", procedureCall.name().id());
         assertEquals(5, procedureCall.parameterList().size());

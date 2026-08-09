@@ -36,6 +36,6 @@ public class ParsingErrorListener extends BaseErrorListener {
         String file = recognizer.getInputStream().getSourceName().equals("<unknown>")
                 ? this.file
                 : recognizer.getInputStream().getSourceName();
-        errors.add(new SyntaxException(new Position(file, line, charPositionInLine), msg));
+        errors.add(new SyntaxException(new Position(file, line, charPositionInLine + 1), msg));
     }
 }

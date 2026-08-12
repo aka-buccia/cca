@@ -21,6 +21,11 @@ public class Role extends Node {
     }
 
     @Override
+    public int hashCode() {
+        return this.name.hashCode();
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (o instanceof Role) {
             return this.name.equals(((Role) o).name());

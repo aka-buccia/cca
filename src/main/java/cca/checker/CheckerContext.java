@@ -179,6 +179,10 @@ public class CheckerContext {
         return terminatingPairs.contains(t);
     }
 
+    public boolean isNonTerm(Role r) {
+        return nonTerminatingRoles.contains(r);
+    }
+
     public void addStateless(Role r) {
         statelessRoles.add(r);
     }

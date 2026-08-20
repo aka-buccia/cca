@@ -11,6 +11,12 @@ public class TerminatingPair {
     private final Role creatorRole;
     private final Position position;
 
+    public TerminatingPair(Role createdRole, Role creatorRole) {
+        this.createdRole = createdRole;
+        this.creatorRole = creatorRole;
+        this.position = creatorRole.position();
+    }
+
     public TerminatingPair(Role createdRole, Role creatorRole, Position position) {
         this.createdRole = createdRole;
         this.creatorRole = creatorRole;

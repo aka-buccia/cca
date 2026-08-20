@@ -14,12 +14,14 @@ public class CheckerContext {
 
     private Set<Role> statefulRoles;
     private Set<Role> statelessRoles;
+    private Set<Role> nonTerminatingRoles;
     private List<TerminatingPair> terminatingPairs;
     private Set<OrderingCouple> terminationOrder;
 
     public CheckerContext() {
         this.statefulRoles = new HashSet<>();
         this.statelessRoles = new HashSet<>();
+        this.nonTerminatingRoles = new HashSet<>();
         this.terminatingPairs = new ArrayList<>();
         this.terminationOrder = new HashSet<>();
     }
@@ -35,9 +37,12 @@ public class CheckerContext {
                 .map(StatefulParameter::parameter)
                 .collect(Collectors.toSet());
 
+        this.nonTerminatingRoles = p.nonTerminatingParameters().stream()
+                .map(NonTerminatingParameter::parameter)
+                .collect(Collectors.toSet());
+
         this.statelessRoles = Stream.concat(
-                p.nonTerminatingParameters().stream()
-                        .map(NonTerminatingParameter::parameter),
+                nonTerminatingRoles.stream(),
                 p.terminatingParameters().stream()
                         .map(TerminatingParameter::createdRole))
                 .collect(Collectors.toSet());
@@ -49,6 +54,7 @@ public class CheckerContext {
         CheckerContext copy = new CheckerContext();
         copy.statefulRoles = new HashSet<>(this.statefulRoles);
         copy.statelessRoles = new HashSet<>(this.statelessRoles);
+        copy.nonTerminatingRoles = new HashSet<>(this.nonTerminatingRoles);
         copy.terminatingPairs = new ArrayList<>(this.terminatingPairs);
         copy.terminationOrder = new HashSet<>(this.terminationOrder);
         return copy;
@@ -63,12 +69,20 @@ public class CheckerContext {
         return statelessRoles;
     }
 
+    public Set<Role> getNonTerminatingRoles() {
+        return nonTerminatingRoles;
+    }
+
     public List<TerminatingPair> getTerminatingPairs() {
         return terminatingPairs;
     }
 
     public Set<OrderingCouple> getTerminationOrder() {
         return terminationOrder;
+    }
+
+    public void setNonTerminatingRoles(Set<Role> nonTerminatingRoles) {
+        this.nonTerminatingRoles = nonTerminatingRoles;
     }
 
     public void setTerminatingPairs(List<TerminatingPair> terminatingPairs) {
@@ -79,6 +93,10 @@ public class CheckerContext {
         this.terminatingPairs = terminatingParameters.stream()
                 .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public void setStatelessRoles(Set<Role> statelessRoles) {
+        this.statelessRoles = statelessRoles;
     }
 
     // Helpers

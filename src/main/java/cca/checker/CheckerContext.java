@@ -123,8 +123,12 @@ public class CheckerContext {
         terminationOrder.removeIf(couple -> couple.left().equals(r));
     }
 
-    public Set<OrderingCouple> computeTransitiveClosure() {
-        Set<OrderingCouple> closure = new HashSet<>(terminationOrder);
+    public void computeTerminationOrderTransitiveClosure() {
+        terminationOrder = computeTransitiveClosure(terminationOrder);
+    }
+
+    public Set<OrderingCouple> computeTransitiveClosure(Set<OrderingCouple> startingOrderSet) {
+        Set<OrderingCouple> closure = new HashSet<>(startingOrderSet);
 
         boolean added;
 

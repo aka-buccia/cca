@@ -20,39 +20,38 @@ import cca.exceptions.IllFormedException;
 public class LocalChecker extends AbstractVisitor<Void> {
 
     private Map<String, ProcedureInfo> procedureMap;
-    private Procedure procedure;
     private CheckerContext context;
     private List<IllFormedException> errors;
+    private Set<String> procedureCalled;
 
     public LocalChecker() {
     }
 
-    public LocalChecker(Map<String, ProcedureInfo> procedureMap, Procedure procedure, CheckerContext context,
+    public LocalChecker(Map<String, ProcedureInfo> procedureMap, CheckerContext context,
             List<IllFormedException> errors) {
         this.procedureMap = procedureMap;
-        this.procedure = procedure;
         this.context = context;
         this.errors = errors;
+        this.procedureCalled = new HashSet<>();
     }
 
-    public List<IllFormedException> check(Map<String, ProcedureInfo> procedureMap, Procedure procedure) {
+    public LocalCheckResult check(Map<String, ProcedureInfo> procedureMap, ProcedureInfo procedureInfo) {
 
         this.procedureMap = procedureMap;
-        this.procedure = procedure;
         this.context = new CheckerContext();
 
-        this.context.init(procedure);
+        this.context.init(procedureInfo.signature());
         this.errors = new ArrayList<>();
-        visit(procedure.choreography());
+        this.procedureCalled = new HashSet<>();
+        visit(procedureInfo.body());
 
-        return errors;
+        return new LocalCheckResult(errors, procedureCalled);
     }
 
     public List<IllFormedException> checkBranch(Map<String, ProcedureInfo> procedureMap, Choreography choreography,
             CheckerContext context) {
 
         this.procedureMap = procedureMap;
-        this.procedure = null;
         this.context = context;
 
         this.errors = new ArrayList<>();
@@ -420,6 +419,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
             return null; // can't procede if procedure ins't defined
             // TODO implement continuation
         }
+        procedureCalled.add(n.name().id());
         // ---------------------
 
         ProcedureParameterList procedureCalledParameters = procedureMap.get(n.name().id()).signature().parameterList();
@@ -531,8 +531,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // if in actualTerminatingPairs there's (f_i, s_i) and (s_i, s_j), then ordering
         // couple (f_i, f_j) must be declared in procedure called
-        List<OrderingCouple> procedureTerminationOrder = procedureMap.get(n.name().id()).signature().terminationOrder()
-                .elements();
+        Set<OrderingCouple> procedureTerminationOrder = procedureMap.get(n.name().id()).signature().terminationOrder();
         for (int i = 0; i < actualTerminatingPairs.size(); i++) {
             TerminatingPair pairI = actualTerminatingPairs.get(i);
             Role s_i = pairI.creatorRole();

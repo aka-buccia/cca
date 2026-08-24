@@ -2,6 +2,7 @@ package cca.checker;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,11 +20,11 @@ public class CheckerContext {
     private Set<OrderingCouple> terminationOrder;
 
     public CheckerContext() {
-        this.statefulRoles = new HashSet<>();
-        this.statelessRoles = new HashSet<>();
-        this.nonTerminatingRoles = new HashSet<>();
+        this.statefulRoles = new LinkedHashSet<>();
+        this.statelessRoles = new LinkedHashSet<>();
+        this.nonTerminatingRoles = new LinkedHashSet<>();
         this.terminatingPairs = new ArrayList<>();
-        this.terminationOrder = new HashSet<>();
+        this.terminationOrder = new LinkedHashSet<>();
     }
 
     public void init(Procedure procedure) {
@@ -35,28 +36,28 @@ public class CheckerContext {
 
         this.statefulRoles = p.statefulParameters().stream()
                 .map(StatefulParameter::parameter)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         this.nonTerminatingRoles = p.nonTerminatingParameters().stream()
                 .map(NonTerminatingParameter::parameter)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         this.statelessRoles = Stream.concat(
                 nonTerminatingRoles.stream(),
                 p.terminatingParameters().stream()
                         .map(TerminatingParameter::createdRole))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         this.terminationOrder = new HashSet<>(procedure.terminationOrder().elements());
     }
 
     public CheckerContext copy() {
         CheckerContext copy = new CheckerContext();
-        copy.statefulRoles = new HashSet<>(this.statefulRoles);
-        copy.statelessRoles = new HashSet<>(this.statelessRoles);
-        copy.nonTerminatingRoles = new HashSet<>(this.nonTerminatingRoles);
+        copy.statefulRoles = new LinkedHashSet<>(this.statefulRoles);
+        copy.statelessRoles = new LinkedHashSet<>(this.statelessRoles);
+        copy.nonTerminatingRoles = new LinkedHashSet<>(this.nonTerminatingRoles);
         copy.terminatingPairs = new ArrayList<>(this.terminatingPairs);
-        copy.terminationOrder = new HashSet<>(this.terminationOrder);
+        copy.terminationOrder = new LinkedHashSet<>(this.terminationOrder);
         return copy;
     }
 

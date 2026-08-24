@@ -27,8 +27,8 @@ public class CheckerContext {
         this.terminationOrder = new LinkedHashSet<>();
     }
 
-    public void init(Procedure procedure) {
-        ProcedureParameterList p = procedure.parameterList();
+    public void init(ProcedureSignature procedureSignature) {
+        ProcedureParameterList p = procedureSignature.parameterList();
 
         this.terminatingPairs = p.terminatingParameters().stream()
                 .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
@@ -48,7 +48,7 @@ public class CheckerContext {
                         .map(TerminatingParameter::createdRole))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        this.terminationOrder = new HashSet<>(procedure.terminationOrder().elements());
+        this.terminationOrder = new HashSet<>(procedureSignature.terminationOrder());
     }
 
     public CheckerContext copy() {

@@ -45,6 +45,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
         this.procedureCalled = new HashSet<>();
         visit(procedureInfo.body());
 
+        postVisitCheck(procedureInfo.signature());
+
         return new LocalCheckResult(errors, procedureCalled);
     }
 
@@ -58,6 +60,23 @@ public class LocalChecker extends AbstractVisitor<Void> {
         visit(choreography);
 
         return errors;
+    }
+
+    public void postVisitCheck(ProcedureSignature signature) {
+        Set<Role> finalMentionedRoles = context.getMentionedRoles();
+
+        // body of the procedure must contain at least two roles
+        if (finalMentionedRoles.size() < 2) {
+            addError(signature.parameterList());
+        }
+
+        Set<Role> formalRoles = tranformProcedureParameterInRoleSet(signature.parameterList());
+
+        // Procedure body must mention all formal parameters
+        if (!formalRoles.containsAll(finalMentionedRoles)) {
+            addError(signature.parameterList());
+        }
+
     }
 
     @Override
@@ -94,6 +113,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(Communication n) {
+        context.markRoleAsMentioned(n.leftRole());
+        context.markRoleAsMentioned(n.rightRole());
 
         // Stateful roles has to be different
         if (n.leftRole().equals(n.rightRole())) {
@@ -115,6 +136,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(Selection n) {
+        context.markRoleAsMentioned(n.targetRole());
+        context.markRoleAsMentioned(n.sourceRole());
 
         // Stateful roles has to be different
         if (n.sourceRole().equals(n.targetRole())) {
@@ -136,6 +159,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(Assignment n) {
+        context.markRoleAsMentioned(n.targetRole());
 
         // Target role has to be defined as stateful or nonterminating
         if (!isDefined(n.targetRole())) {
@@ -147,6 +171,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(Request n) {
+        context.markRoleAsMentioned(n.targetRole());
+        context.markRoleAsMentioned(n.sourceRole());
 
         // Source role has to be defined as stateful or nonterminating
         if (!isDefined(n.sourceRole())) {
@@ -168,6 +194,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(RequestResponse n) {
+        context.markRoleAsMentioned(n.targetRole());
+        context.markRoleAsMentioned(n.sourceRole());
 
         // Source role has to be defined as stateful or nonterminating
         if (!isDefined(n.sourceRole())) {
@@ -192,6 +220,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(End n) {
+        context.markRoleAsMentioned(n.endingRole());
 
         // Ending role has to be a stateless role without creator
         if (isTerm(new TerminatingPair(n.endingRole(), null))) {
@@ -210,6 +239,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(EndResponse n) {
+        context.markRoleAsMentioned(n.endingRole());
+        context.markRoleAsMentioned(n.targetRole());
 
         // Ending role has to be a stateless role without creator
         if (isTerm(new TerminatingPair(n.endingRole(), null))) {
@@ -229,6 +260,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(Conditional n) {
+        context.markRoleAsMentioned(n.targetRole());
 
         // Guard role has to be defined
         if (!context.isDefined(n.targetRole())) {
@@ -290,6 +322,10 @@ public class LocalChecker extends AbstractVisitor<Void> {
         this.errors.addAll(ifErrors);
         this.errors.addAll(elseErrors);
 
+        // Insert mentioned roles
+        context.markRolesAsMentioned(ifContext.getMentionedRoles());
+        context.markRolesAsMentioned(elseContext.getMentionedRoles());
+
         // Set context for continuation
 
         // Remove ordering couples with term\D roles
@@ -311,6 +347,9 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     @Override
     public Void visit(ProcedureCall n) {
+
+        Set<Role> procedureCallMentionedRoles = tranformProcedureParameterInRoleSet(n.parameterList());
+        context.markRolesAsMentioned(procedureCallMentionedRoles);
 
         List<Role> actualStatefulRoles = n.parameterList().statefulParameters().stream()
                 .map(StatefulParameter::parameter)
@@ -675,6 +714,27 @@ public class LocalChecker extends AbstractVisitor<Void> {
                 }
             }
         }
+    }
+
+    private Set<Role> tranformProcedureParameterInRoleSet(ProcedureParameterList parameterList) {
+        Set<Role> result = new HashSet<>();
+
+        result.addAll(parameterList.statefulParameters().stream()
+                .map(StatefulParameter::parameter)
+                .collect(Collectors.toSet()));
+        result.addAll(parameterList.nonTerminatingParameters().stream()
+                .map(NonTerminatingParameter::parameter)
+                .collect(Collectors.toSet()));
+        result.addAll(parameterList.terminatingParameters().stream()
+                .map(TerminatingParameter::createdRole)
+                .collect(Collectors.toSet()));
+        result.addAll(parameterList.terminatingParameters().stream()
+                .map(TerminatingParameter::creatorRole)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+
+        return result;
+
     }
 
 }

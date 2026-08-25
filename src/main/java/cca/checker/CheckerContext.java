@@ -18,6 +18,7 @@ public class CheckerContext {
     private Set<Role> nonTerminatingRoles;
     private List<TerminatingPair> terminatingPairs;
     private Set<OrderingCouple> terminationOrder;
+    private Set<Role> mentionedRoles;
 
     public CheckerContext() {
         this.statefulRoles = new LinkedHashSet<>();
@@ -25,6 +26,7 @@ public class CheckerContext {
         this.nonTerminatingRoles = new LinkedHashSet<>();
         this.terminatingPairs = new ArrayList<>();
         this.terminationOrder = new LinkedHashSet<>();
+        this.mentionedRoles = new HashSet<>();
     }
 
     public void init(ProcedureSignature procedureSignature) {
@@ -49,6 +51,7 @@ public class CheckerContext {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         this.terminationOrder = new HashSet<>(procedureSignature.terminationOrder());
+        this.mentionedRoles = new HashSet<>();
     }
 
     public CheckerContext copy() {
@@ -58,6 +61,7 @@ public class CheckerContext {
         copy.nonTerminatingRoles = new LinkedHashSet<>(this.nonTerminatingRoles);
         copy.terminatingPairs = new ArrayList<>(this.terminatingPairs);
         copy.terminationOrder = new LinkedHashSet<>(this.terminationOrder);
+        copy.mentionedRoles = new HashSet<>(this.mentionedRoles);
         return copy;
     }
 
@@ -80,6 +84,10 @@ public class CheckerContext {
 
     public Set<OrderingCouple> getTerminationOrder() {
         return terminationOrder;
+    }
+
+    public Set<Role> getMentionedRoles() {
+        return mentionedRoles;
     }
 
     public void setNonTerminatingRoles(Set<Role> nonTerminatingRoles) {
@@ -153,4 +161,15 @@ public class CheckerContext {
     public void addStateless(Role r) {
         statelessRoles.add(r);
     }
+
+    public void markRoleAsMentioned(Role r) {
+        if (r != null) {
+            this.mentionedRoles.add(r);
+        }
+    }
+
+    public void markRolesAsMentioned(Set<Role> roles) {
+        this.mentionedRoles.addAll(roles);
+    }
+
 }

@@ -22,6 +22,11 @@ public class TerminatingRolesCollector extends AbstractVisitor<Set<TerminatingPa
     }
 
     @Override
+    public Set<TerminatingPair> visit(Instruction n) {
+        return n.accept(this);
+    }
+
+    @Override
     public Set<TerminatingPair> visit(Request n) {
         return Collections.emptySet();
     }

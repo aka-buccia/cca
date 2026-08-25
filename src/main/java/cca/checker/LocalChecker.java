@@ -50,7 +50,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         return new LocalCheckResult(errors, procedureCalled);
     }
 
-    public List<IllFormedException> checkBranch(Map<String, ProcedureInfo> procedureMap, Choreography choreography,
+    public LocalCheckResult checkBranch(Map<String, ProcedureInfo> procedureMap, Choreography choreography,
             CheckerContext context) {
 
         this.procedureMap = procedureMap;
@@ -59,7 +59,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         this.errors = new ArrayList<>();
         visit(choreography);
 
-        return errors;
+        return new LocalCheckResult(errors, procedureCalled);
     }
 
     public void postVisitCheck(ProcedureSignature signature) {
@@ -312,15 +312,19 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Visit if branch
         CheckerContext ifContext = branchContext.copy();
-        List<IllFormedException> ifErrors = checker.checkBranch(procedureMap, n.ifBranch(), ifContext);
+        LocalCheckResult ifBranchResponse = checker.checkBranch(procedureMap, n.ifBranch(), ifContext);
 
         // Visit else branch
         CheckerContext elseContext = branchContext.copy();
-        List<IllFormedException> elseErrors = checker.checkBranch(procedureMap, n.elseBranch(), elseContext);
+        LocalCheckResult elseBrancResponse = checker.checkBranch(procedureMap, n.elseBranch(), elseContext);
 
         // Insert errors
-        this.errors.addAll(ifErrors);
-        this.errors.addAll(elseErrors);
+        this.errors.addAll(ifBranchResponse.getErrors());
+        this.errors.addAll(elseBrancResponse.getErrors());
+
+        // Insert procedure called
+        this.procedureCalled.addAll(ifBranchResponse.getDiscoveredCalls());
+        this.procedureCalled.addAll(elseBrancResponse.getDiscoveredCalls());
 
         // Insert mentioned roles
         context.markRolesAsMentioned(ifContext.getMentionedRoles());

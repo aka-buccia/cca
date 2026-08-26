@@ -50,7 +50,7 @@ public class CheckerContext {
                         .map(TerminatingParameter::createdRole))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        this.terminationOrder = new HashSet<>(procedureSignature.terminationOrder());
+        this.terminationOrder = new HashSet<>(procedureSignature.terminationOrder().getOrderingCouples());
         this.mentionedRoles = new HashSet<>();
     }
 

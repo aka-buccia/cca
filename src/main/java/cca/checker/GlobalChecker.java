@@ -1,7 +1,6 @@
 package cca.checker;
 
 import cca.exceptions.*;
-import cca.ast.procedure.OrderingCouple;
 import cca.ast.procedure.Procedure;
 import cca.ast.Program;
 
@@ -35,12 +34,11 @@ public class GlobalChecker {
                 continue;
             }
 
-            Set<OrderingCouple> completeTerminationOrder = TerminationOrderUtils
-                    .buildCompleteTerminationOrder(p.parameterList(), p.terminationOrder());
-
             ProcedureSignature signature = new ProcedureSignature(
                     p.parameterList(),
-                    completeTerminationOrder);
+                    ComputedTerminationOrder.compute(
+                            p.parameterList(),
+                            p.terminationOrder()));
 
             ProcedureInfo info = new ProcedureInfo(signature, p.choreography());
             procedureTable.put(name, info);

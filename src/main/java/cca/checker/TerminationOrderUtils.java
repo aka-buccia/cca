@@ -76,4 +76,25 @@ public final class TerminationOrderUtils {
 
         return true;
     }
+
+    /**
+     * Verify unreflexivity on a set already transitively closed.
+     * The absence of self-dependencies (a < a) on a transitively closed set
+     * ensures that the order is a strict partial order.
+     */
+    public static boolean isStrictPartialOrderOnClosedSet(ComputedTerminationOrder closedTerminationOrder) {
+        if (closedTerminationOrder == null) {
+            return true;
+        }
+
+        Set<OrderingCouple> terminationOrder = new HashSet<>(closedTerminationOrder.getOrderingCouples());
+
+        for (OrderingCouple couple : terminationOrder) {
+            if (couple.left().equals(couple.right())) {
+                return false; // a < a found
+            }
+        }
+
+        return true;
+    }
 }

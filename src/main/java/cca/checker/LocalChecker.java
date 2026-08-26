@@ -68,6 +68,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     public void preVisitCheck(ProcedureSignature signature) {
         ProcedureParameterList params = signature.parameterList();
+        Set<OrderingCouple> terminationOrder = signature.terminationOrder().getOrderingCouples();
 
         List<Role> statefulRoles = params.statefulParameters().stream()
                 .map(StatefulParameter::parameter)
@@ -89,6 +90,10 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         if (tranformProcedureParameterInRoleSet(params).size() < 2) {
             addError(params, "Procedure must have at least one formal parameter. Use a function instead");
+        }
+
+        if (!TerminationOrderUtils.isStrictPartialOrderOnClosedSet(signature.terminationOrder())) {
+            addError(signature.terminationOrder().position(), "Termination order must be a strict partial order");
         }
 
     }
@@ -558,7 +563,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // if in actualTerminatingPairs there's (f_i, s_i) and (s_i, s_j), then ordering
         // couple (f_i, f_j) must be declared in procedure called
-        Set<OrderingCouple> procedureTerminationOrder = procedureMap.get(n.name().id()).signature().terminationOrder();
+        Set<OrderingCouple> procedureTerminationOrder = procedureMap.get(n.name().id())
+                .signature().terminationOrder().getOrderingCouples();
         for (int i = 0; i < actualTerminatingPairs.size(); i++) {
             TerminatingPair pairI = actualTerminatingPairs.get(i);
             Role s_i = pairI.creatorRole();

@@ -38,11 +38,15 @@ public class LocalChecker extends AbstractVisitor<Void> {
     public LocalCheckResult check(Map<String, ProcedureInfo> procedureMap, ProcedureInfo procedureInfo) {
 
         this.procedureMap = procedureMap;
-        this.context = new CheckerContext();
-
-        this.context.init(procedureInfo.signature());
         this.errors = new ArrayList<>();
         this.procedureCalled = new HashSet<>();
+
+        preVisitCheck(procedureInfo.signature());
+        if (this.errors.size() > 0)
+            return new LocalCheckResult(errors, procedureCalled);
+
+        this.context = new CheckerContext();
+        this.context.init(procedureInfo.signature());
         visit(procedureInfo.body());
 
         postVisitCheck(procedureInfo.signature());
@@ -60,6 +64,33 @@ public class LocalChecker extends AbstractVisitor<Void> {
         visit(choreography);
 
         return new LocalCheckResult(errors, procedureCalled);
+    }
+
+    public void preVisitCheck(ProcedureSignature signature) {
+        ProcedureParameterList params = signature.parameterList();
+
+        List<Role> statefulRoles = params.statefulParameters().stream()
+                .map(StatefulParameter::parameter)
+                .collect(Collectors.toList());
+
+        List<Role> nonTerminatingRoles = params.nonTerminatingParameters().stream()
+                .map(NonTerminatingParameter::parameter)
+                .collect(Collectors.toList());
+
+        List<TerminatingPair> terminatingPairs = params.terminatingParameters().stream()
+                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
+                .collect(Collectors.toList());
+
+        // all parameters must be distinct (with some exceptions for terminating pairs)
+        checkRoleDuplicates(statefulRoles, "Stateful role duplicated: ");
+        checkRoleDuplicates(nonTerminatingRoles, "Non-terminating role duplicated: ");
+        checkTerminatingDuplicates(terminatingPairs);
+        checkCrossParameterDisjointness(statefulRoles, nonTerminatingRoles, terminatingPairs);
+
+        if (tranformProcedureParameterInRoleSet(params).size() < 2) {
+            addError(params, "Procedure must have at least one formal parameter. Use a function instead");
+        }
+
     }
 
     public void postVisitCheck(ProcedureSignature signature) {
@@ -393,67 +424,20 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // actualStatefulRoles can't be duplicated
         // p_i != p_j
-        Set<Role> statefulSet = new HashSet<>();
-        for (Role r : actualStatefulRoles) {
-            if (!statefulSet.add(r)) {
-                addError(r);
-            }
-        }
-        // ---------------------
+        checkRoleDuplicates(actualStatefulRoles, "Duplicate actual stateful parameter: ");
 
         // actualNonTerminatingRoles can't be duplicated
         // n_i != n_j
-        Set<Role> nonTermSet = new HashSet<>();
-        for (Role r : actualNonTerminatingRoles) {
-            if (!nonTermSet.add(r)) {
-                addError(r);
-            }
-        }
+        checkRoleDuplicates(actualNonTerminatingRoles, "Duplicate actual non-terminating parameter: ");
         // ---------------------
 
         // left roles in actualTerminatingPairs can't be duplicated
         // f_i != f_j
-        Set<Role> termLeftSet = new HashSet<>();
-        for (TerminatingPair tp : actualTerminatingPairs) {
-            if (!termLeftSet.add(tp.createdRole())) {
-                addError(tp.position());
-            }
-        }
+        checkTerminatingDuplicates(actualTerminatingPairs);
         // ---------------------
 
         // check p_i != n_j != f_k != s_k:
-
-        // p_i != n_j
-        for (Role r : statefulSet) {
-            if (nonTermSet.contains(r)) {
-                addError(r);
-            }
-        }
-
-        // p_i and n_j != f_k
-        for (Role r : termLeftSet) {
-            if (statefulSet.contains(r) || nonTermSet.contains(r)) {
-                addError(r);
-            }
-        }
-
-        // For every actualTerminatingPair k: f_k != s_k
-        // Checks also that every p_i, n_j != s_k
-        for (TerminatingPair tp : actualTerminatingPairs) {
-            Role created = tp.createdRole(); // f_k
-            Role creator = tp.creatorRole(); // s_k
-
-            if (creator != null) {
-                // f_k != s_k
-                if (created.equals(creator)) {
-                    addError(tp.position());
-                }
-                // p_i != s_k and n_j != s_k
-                if (statefulSet.contains(creator) || nonTermSet.contains(creator)) {
-                    addError(tp.position());
-                }
-            }
-        }
+        checkCrossParameterDisjointness(actualStatefulRoles, actualNonTerminatingRoles, actualTerminatingPairs); // ---------------------
         // ---------------------
 
         // The procedure and his termination order must be in procedureMap
@@ -675,6 +659,10 @@ public class LocalChecker extends AbstractVisitor<Void> {
         addError(p, "");
     }
 
+    private void addError(Node n, String message) {
+        addError(n.position(), message);
+    }
+
     private void addError(Position p, String message) {
         errors.add(
                 new IllFormedException(
@@ -739,6 +727,76 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         return result;
 
+    }
+
+    private boolean checkRoleDuplicates(List<Role> roles, String errorMessagePrefix) {
+        Set<Role> seen = new HashSet<>();
+        boolean hasDuplicates = false;
+
+        for (Role r : roles) {
+            if (r != null && !seen.add(r)) {
+                addError(r, errorMessagePrefix + r);
+                hasDuplicates = true;
+            }
+        }
+        return hasDuplicates;
+    }
+
+    /**
+     * Check if there are duplicate roles on the left side (createdRole) of the
+     * TerminatingPair.
+     */
+    private boolean checkTerminatingDuplicates(List<TerminatingPair> pairs) {
+        Set<Role> seenLeft = new HashSet<>();
+        boolean hasDuplicates = false;
+
+        for (TerminatingPair tp : pairs) {
+            Role created = tp.createdRole();
+            if (created != null && !seenLeft.add(created)) {
+                addError(tp.position(), "Terminating created role duplicated: " + created);
+                hasDuplicates = true;
+            }
+        }
+        return hasDuplicates;
+    }
+
+    /**
+     * Check the disjunction between the various types of parameters (p_i != n_j !=
+     * f_k != s_k).
+     */
+    private void checkCrossParameterDisjointness(
+            List<Role> statefulRoles,
+            List<Role> nonTerminatingRoles,
+            List<TerminatingPair> terminatingPairs) {
+
+        Set<Role> statefulSet = new HashSet<>(statefulRoles);
+        Set<Role> nonTermSet = new HashSet<>(nonTerminatingRoles);
+
+        // p_i != n_j
+        for (Role r : statefulRoles) {
+            if (nonTermSet.contains(r)) {
+                addError(r, "Role " + r + " cannot be both stateful and non-terminating");
+            }
+        }
+
+        // p_i and n_j != f_k
+        for (TerminatingPair tp : terminatingPairs) {
+            Role created = tp.createdRole();
+            if (statefulSet.contains(created)) {
+                addError(tp.position(), "Created role " + created + " cannot be a stateful parameter");
+            }
+            if (nonTermSet.contains(created)) {
+                addError(tp.position(), "Created role " + created + " cannot be a non-terminating parameter");
+            }
+
+            Role creator = tp.creatorRole();
+            if (creator != null) {
+                // f_k != s_k
+                if (created.equals(creator)) {
+                    addError(tp.position(), "Created role and creator role cannot be the same: " + created);
+                }
+            }
+        }
     }
 
 }

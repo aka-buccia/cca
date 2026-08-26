@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import cca.ast.procedure.OrderingCouple;
-import cca.ast.procedure.ProcedureParameterList;
-import cca.ast.procedure.TerminationOrder;
 
 public final class TerminationOrderUtils {
 
@@ -50,18 +48,32 @@ public final class TerminationOrderUtils {
         return closure;
     }
 
-    public static Set<OrderingCouple> buildCompleteTerminationOrder(
-            ProcedureParameterList params,
-            TerminationOrder declaredOrder) {
+    /**
+     * Check if a TerminationOrder is a strict partial order.
+     *
+     * An order is strict partial if it is unreflective and transitive.
+     *
+     * @param terminationOrder
+     * @return
+     */
+    public static boolean isStrictPartialOrder(Set<OrderingCouple> terminationOrder) {
+        if (terminationOrder == null) {
+            return true;
+        }
 
-        Set<OrderingCouple> baseCouples = new HashSet<>(declaredOrder.elements());
+        Set<OrderingCouple> baseSet = new HashSet<>(terminationOrder);
 
-        // add terminatingPairs as OrderingCouples
-        params.terminatingParameters().stream()
-                .filter(tp -> tp.creatorRole() != null)
-                .map(tp -> new OrderingCouple(tp.createdRole(), tp.creatorRole(), tp.position()))
-                .forEach(baseCouples::add);
+        Set<OrderingCouple> closure = computeTransitiveClosure(baseSet);
 
-        return computeTransitiveClosure(baseCouples);
+        // Verify unreflectiveness of the transitive closure:
+        // If there exists a pair (a, b) in the closure where a.equals(b),
+        // means that there is a loop (e.g. a < b and b < a), violating irreflectivity.
+        for (OrderingCouple couple : closure) {
+            if (couple.left().equals(couple.right())) {
+                return false; // a<a found
+            }
+        }
+
+        return true;
     }
 }

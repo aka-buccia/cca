@@ -25,13 +25,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
     private Set<String> procedureCalled;
 
     public LocalChecker() {
-    }
+    };
 
-    public LocalChecker(Map<String, ProcedureInfo> procedureMap, CheckerContext context,
-            List<IllFormedException> errors) {
+    public LocalChecker(Map<String, ProcedureInfo> procedureMap, CheckerContext context) {
         this.procedureMap = procedureMap;
         this.context = context;
-        this.errors = errors;
+        this.errors = new ArrayList<>();
         this.procedureCalled = new HashSet<>();
     }
 
@@ -54,10 +53,9 @@ public class LocalChecker extends AbstractVisitor<Void> {
         return new LocalCheckResult(errors, procedureCalled);
     }
 
-    public LocalCheckResult checkBranch(Map<String, ProcedureInfo> procedureMap, Choreography choreography,
+    public LocalCheckResult checkBranch(Choreography choreography,
             CheckerContext context) {
 
-        this.procedureMap = procedureMap;
         this.context = context;
 
         this.errors = new ArrayList<>();
@@ -88,13 +86,15 @@ public class LocalChecker extends AbstractVisitor<Void> {
         checkTerminatingDuplicates(terminatingPairs);
         checkCrossParameterDisjointness(statefulRoles, nonTerminatingRoles, terminatingPairs);
 
-        if (tranformProcedureParameterInRoleSet(params).size() < 2) {
+        if (tranformProcedureParameterInRoleSet(params).size() < 1) {
             addError(params, "Procedure must have at least one formal parameter. Use a function instead");
         }
 
         if (!TerminationOrderUtils.isStrictPartialOrderOnClosedSet(signature.terminationOrder())) {
             addError(signature.terminationOrder().position(), "Termination order must be a strict partial order");
         }
+
+        checkTerminationOrderInvariants(terminationOrder, statefulRoles, nonTerminatingRoles, terminatingPairs);
 
     }
 
@@ -132,9 +132,10 @@ public class LocalChecker extends AbstractVisitor<Void> {
         List<TerminatingPair> terminatingPairs = context.getTerminatingPairs();
 
         // All terminating roles has to terminate before procedure termination
-        // TODO: iterate on every role which hasn't been terminated
         if (!terminatingPairs.isEmpty()) {
-            addError(n);
+            for (TerminatingPair missingPair : terminatingPairs) {
+                addError(missingPair.createdRole().position());
+            }
         }
 
         return null;
@@ -344,15 +345,15 @@ public class LocalChecker extends AbstractVisitor<Void> {
             branchContext.removeOrderingCouplesWithLeft(tp.createdRole());
         }
 
-        LocalChecker checker = new LocalChecker();
+        LocalChecker checker = new LocalChecker(procedureMap, branchContext);
 
         // Visit if branch
         CheckerContext ifContext = branchContext.copy();
-        LocalCheckResult ifBranchResponse = checker.checkBranch(procedureMap, n.ifBranch(), ifContext);
+        LocalCheckResult ifBranchResponse = checker.checkBranch(n.ifBranch(), ifContext);
 
         // Visit else branch
         CheckerContext elseContext = branchContext.copy();
-        LocalCheckResult elseBrancResponse = checker.checkBranch(procedureMap, n.elseBranch(), elseContext);
+        LocalCheckResult elseBrancResponse = checker.checkBranch(n.elseBranch(), elseContext);
 
         // Insert errors
         this.errors.addAll(ifBranchResponse.getErrors());
@@ -503,7 +504,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         }
         // ---------------------
 
-        // When two formal params are the same, the corresponding actual parm must be
+        // When two formal params are the same, the corresponding actual param must be
         // the same
         List<Role> actualCreatorRoles = actualTerminatingPairs.stream()
                 .map(TerminatingPair::creatorRole)
@@ -800,6 +801,82 @@ public class LocalChecker extends AbstractVisitor<Void> {
                 // f_k != s_k
                 if (created.equals(creator)) {
                     addError(tp.position(), "Created role and creator role cannot be the same: " + created);
+                }
+            }
+        }
+    }
+
+    private void checkTerminationOrderInvariants(
+            Set<OrderingCouple> terminationOrder,
+            List<Role> statefulRoles,
+            List<Role> nonTerminatingRoles,
+            List<TerminatingPair> terminatingPairs) {
+
+        Set<Role> statefulSet = new HashSet<>(statefulRoles);
+        Set<Role> nonTermSet = new HashSet<>(nonTerminatingRoles);
+
+        Set<Role> createdTerminatingRoles = terminatingPairs.stream()
+                .map(TerminatingPair::createdRole)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Role> validCreatorRoles = new HashSet<>(statefulSet);
+        validCreatorRoles.addAll(nonTermSet);
+        validCreatorRoles.addAll(createdTerminatingRoles);
+
+        // All second elements of terminating pairs must be stateful,
+        // nonterm, term, or null
+        for (TerminatingPair tp : terminatingPairs) {
+            Role creator = tp.creatorRole();
+            if (creator != null && !validCreatorRoles.contains(creator)) {
+                addError(tp.position(),
+                        "Creator role " + creator + " must be stateful, non-terminating, or terminating");
+            }
+        }
+
+        // Termination order must include all terminating pairs, excluding those with
+        // 0 as the second element
+        for (TerminatingPair tp : terminatingPairs) {
+            if (tp.creatorRole() != null) {
+                boolean containsPair = terminationOrder.stream()
+                        .anyMatch(c -> c.left().equals(tp.createdRole()) && c.right().equals(tp.creatorRole()));
+
+                if (!containsPair) {
+                    addError(tp.position(), "Termination order missing pair for terminating parameter: ("
+                            + tp.createdRole() + ", " + tp.creatorRole() + ")");
+                }
+            }
+        }
+
+        for (OrderingCouple couple : terminationOrder) {
+            // For every ordering couple it must exist a terminating pair with the same left
+            // role
+            if (!createdTerminatingRoles.contains(couple.left())) {
+                addError(couple.position(), "Left role of ordering couple " + couple.left()
+                        + " must be a terminating role");
+            }
+
+            // The left role of an ordering couple must be a stateful, non term or left term
+            // role
+            if (!validCreatorRoles.contains(couple.right())) {
+                addError(couple.position(), "Right element of ordering couple " + couple.right()
+                        + " is not a valid role (must be stateful, non-terminating, or terminating)");
+            }
+        }
+
+        // For every terminating pair (f, n) with n != 0, it cannot exist the ordering
+        // couple (n, f) in the termination order
+        for (TerminatingPair tp : terminatingPairs) {
+            Role f = tp.createdRole();
+            Role n = tp.creatorRole();
+
+            if (n != null) {
+                boolean hasInverseCycle = terminationOrder.stream()
+                        .anyMatch(c -> c.left().equals(n) && c.right().equals(f));
+
+                if (hasInverseCycle) {
+                    addError(tp.position(), "Termination order cannot contain inverse couple ("
+                            + n + ", " + f + ") for terminating pair (" + f + ", " + n + ")");
                 }
             }
         }

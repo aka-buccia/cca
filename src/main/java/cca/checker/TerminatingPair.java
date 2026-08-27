@@ -14,7 +14,7 @@ public class TerminatingPair {
     public TerminatingPair(Role createdRole, Role creatorRole) {
         this.createdRole = createdRole;
         this.creatorRole = creatorRole;
-        this.position = creatorRole.position();
+        this.position = createdRole.position();
     }
 
     public TerminatingPair(Role createdRole, Role creatorRole, Position position) {
@@ -42,12 +42,15 @@ public class TerminatingPair {
 
     @Override
     public boolean equals(final Object o) {
-        if (o instanceof TerminatingPair) {
-            return this.createdRole.equals(((TerminatingPair) o).createdRole())
-                    & this.creatorRole.equals(((TerminatingPair) o).creatorRole());
-        } else {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof TerminatingPair))
             return false;
-        }
+
+        TerminatingPair other = (TerminatingPair) o;
+        return Objects.equals(this.createdRole, other.createdRole) &&
+                Objects.equals(this.creatorRole, other.creatorRole);
     }
 
 }

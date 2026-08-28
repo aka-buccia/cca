@@ -17,7 +17,7 @@ public class GlobalChecker {
 
     private static final String ENTRY_POINT_PROCEDURE_NAME = "main";
 
-    public CompoundException check(Program program) {
+    public void check(Program program) {
 
         List<IllFormedException> errors = new ArrayList<>();
 
@@ -49,7 +49,7 @@ public class GlobalChecker {
             errors.add(new IllFormedException(
                     program.position(),
                     "Procedure \"" + ENTRY_POINT_PROCEDURE_NAME + "\" is not defined"));
-            return new CompoundException(errors);
+            throw new CompoundException(errors);
         }
 
         Set<String> visited = new HashSet<>();
@@ -82,6 +82,8 @@ public class GlobalChecker {
             }
         }
 
-        return new CompoundException(errors);
+        if (!errors.isEmpty()) {
+            throw new CompoundException(errors);
+        }
     }
 }

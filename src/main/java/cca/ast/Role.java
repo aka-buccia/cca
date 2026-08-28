@@ -22,7 +22,7 @@ public class Role extends Node {
 
     @Override
     public int hashCode() {
-        return this.name.hashCode();
+        return this.name.id().hashCode();
     }
 
     @Override
@@ -32,6 +32,11 @@ public class Role extends Node {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.name.id();
     }
 
 }

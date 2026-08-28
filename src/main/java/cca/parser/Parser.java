@@ -25,7 +25,7 @@ public class Parser {
         AstOptimizer optimizer = new AstOptimizer();
 
         if (errorListener.getErrors().isEmpty()) {
-            return optimizer.visitProgram(ctx);
+            return optimizer.optimise(ctx, fileName);
         } else {
             throw new CompoundException(errorListener.getErrors());
         }

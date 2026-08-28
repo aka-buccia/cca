@@ -2,17 +2,8 @@ package cca.exceptions;
 
 import cca.ast.Position;
 
-public class SyntaxException extends FaaSChalCoreException {
-
-    private final Position position;
-
+public class SyntaxException extends AstPositionedException {
     public SyntaxException(Position position, String message) {
-        super(message);
-        this.position = position;
+        super(position, message);
     }
-
-    public Position getPosition() {
-        return position;
-    }
-
 }

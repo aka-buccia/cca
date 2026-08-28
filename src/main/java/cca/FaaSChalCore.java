@@ -15,9 +15,10 @@ import java.util.stream.Stream;
 import cca.ast.Position;
 import cca.ast.Program;
 import cca.ast.visitors.PrettyPrinterVisitor;
+import cca.checker.GlobalChecker;
+import cca.exceptions.AstPositionedException;
 import cca.exceptions.CompoundException;
 import cca.exceptions.FaaSChalCoreException;
-import cca.exceptions.SyntaxException;
 import cca.parser.Parser;
 import cca.utils.VerbosityLevel;
 import picocli.CommandLine;
@@ -25,8 +26,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
-@Command(name = "faasch", description = "A toolkit for parsing and formatting of FaaSChalCore choreographies", subcommands = {
-        FaaSChalCore.PrettyPrinter.class }, mixinStandardHelpOptions = true)
+@Command(name = "faasch", description = "A toolkit for parsing, formatting and static analysis of FaaSChalCore choreographies", subcommands = {
+        FaaSChalCore.PrettyPrinter.class, FaaSChalCore.Checker.class }, mixinStandardHelpOptions = true)
 public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Integer> {
 
     public static void main(String[] args) {
@@ -86,6 +87,37 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
             return 0;
         }
     }
+
+    @Command(name = "check", aliases = { "c", "analysis" }, description = "Check if source files are well-formed")
+    static class Checker extends FaaSChalCoreCommand implements Callable<Integer> {
+
+        @Override
+        public Integer call() {
+            List<Path> sources = sourcePathOption.getPaths();
+            GlobalChecker globalChecker = new GlobalChecker();
+
+            try {
+                for (Path source : sources) {
+                    // Parse AST
+                    Program p = Parser.parseSourceFile(source.toFile());
+
+                    // Check well-formedness
+                    globalChecker.check(p);
+
+                    if (verbosityOptions.verbosity().compareTo(VerbosityLevel.INFO) >= 0) {
+                        System.out.println("Checking " + source + ": OK");
+                    }
+                }
+            } catch (Exception e) {
+                printNiceErrorMessage(e, verbosityOptions.verbosity());
+                System.err.println("check failed");
+                return 1;
+            }
+
+            return 0;
+        }
+    }
+
 }
 
 class VerbosityOptions {
@@ -192,7 +224,7 @@ abstract class FaaSChalCoreCommand {
     protected static void printNiceErrorMessage(
             Throwable e, VerbosityLevel verbosity) {
 
-        if (e instanceof SyntaxException se) {
+        if (e instanceof AstPositionedException se) {
             Position p = se.getPosition();
             System.err.print(String.format("Error at %s: %s.\n%s", p, se.getMessage(), formattedSnippet(p)));
             if (verbosity == VerbosityLevel.DEBUG) {
@@ -211,17 +243,32 @@ abstract class FaaSChalCoreCommand {
     }
 
     private static String formattedSnippet(Position p) {
-        try (Stream<String> lines = Files.lines(Paths.get(p.sourceFile()))) {
+        if (p == null || p.sourceFile() == null || p.sourceFile().isBlank()) {
+            return "";
+        }
+
+        Path path = Paths.get(p.sourceFile());
+
+        if (!Files.isRegularFile(path) || !Files.isReadable(path)) {
+            return "";
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(path);
             int lineNum = p.line();
-            List<String> snippetLines = lines
-                    .skip(Math.max(0, lineNum - 2))
-                    .limit(3)
-                    .collect(Collectors.toList());
 
+            if (lineNum <= 0 || lineNum > lines.size()) {
+                return "";
+            }
+
+            int startLine = Math.max(0, lineNum - 2);
+            int endLine = Math.min(lines.size(), lineNum + 1);
+
+            List<String> snippetLines = lines.subList(startLine, endLine);
             StringBuilder sb = new StringBuilder();
-            int baseLineNum = Math.max(1, lineNum - 1);
 
-            int maxDigits = String.valueOf(lineNum + 1).length();
+            int baseLineNum = startLine + 1;
+            int maxDigits = String.valueOf(endLine).length();
 
             for (int i = 0; i < snippetLines.size(); i++) {
                 int currentLineNum = baseLineNum + i;
@@ -233,7 +280,7 @@ abstract class FaaSChalCoreCommand {
                         .append(snippetLines.get(i))
                         .append('\n');
 
-                if (baseLineNum + i == lineNum) {
+                if (currentLineNum == lineNum) {
                     int caretIndent = linePrefix.length() + Math.max(0, p.column() - 1);
                     sb.append(" ".repeat(caretIndent))
                             .append('^')

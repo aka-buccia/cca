@@ -103,14 +103,15 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // body of the procedure must contain at least two roles
         if (finalMentionedRoles.size() < 2) {
-            addError(signature.parameterList());
+            addError(signature.parameterList(),
+                    "Body of the procedure must contain at least two roles, otherwise it can be expressed using a local function");
         }
 
         Set<Role> formalRoles = tranformProcedureParameterInRoleSet(signature.parameterList());
 
         // Procedure body must mention all formal parameters
-        if (!formalRoles.containsAll(finalMentionedRoles)) {
-            addError(signature.parameterList());
+        if (!finalMentionedRoles.containsAll(formalRoles)) {
+            addError(signature.parameterList(), "Procedure body must mention all formal parameters");
         }
 
     }
@@ -217,7 +218,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         }
 
         // Target role has to not be in the current scope
-        if (n.targetRole() != null && !context.isStateful(n.targetRole())) {
+        if (context.isInScope(n.targetRole())) {
             addError(n.targetRole());
         }
 
@@ -240,7 +241,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         }
 
         // Target role has to not be in the current scope
-        if (n.targetRole() != null && !context.isStateful(n.targetRole())) {
+        if (context.isInScope(n.targetRole())) {
             addError(n.targetRole());
         }
 
@@ -260,7 +261,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRoleAsMentioned(n.endingRole());
 
         // Ending role has to be a stateless role without creator
-        if (isTerm(new TerminatingPair(n.endingRole(), null))) {
+        if (!isTerm(new TerminatingPair(n.endingRole(), null))) {
             addError(n.endingRole());
         }
 
@@ -280,7 +281,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRoleAsMentioned(n.targetRole());
 
         // Ending role has to be a stateless role without creator
-        if (isTerm(new TerminatingPair(n.endingRole(), null))) {
+        if (!isTerm(new TerminatingPair(n.endingRole(), n.targetRole()))) {
             addError(n.endingRole());
         }
 

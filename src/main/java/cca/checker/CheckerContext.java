@@ -158,6 +158,10 @@ public class CheckerContext {
         return nonTerminatingRoles.contains(r);
     }
 
+    public boolean isInScope(Role r) {
+        return statelessRoles.contains(r);
+    }
+
     public void addStateless(Role r) {
         statelessRoles.add(r);
     }

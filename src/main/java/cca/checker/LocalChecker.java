@@ -294,7 +294,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         gatherBranchResult(elseBranchResponse, elseContext);
 
         // Set context for continuation
-        setupContinuationContext(D, ifContext, elseContext);
+        setConditionalContinuation(D, ifContext, elseContext);
 
         return null;
     }
@@ -317,7 +317,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // The procedure and his termination order must be in procedureMap
         if (!procedureMap.containsKey(n.name().id())) {
             addError(n.name(), "Procedure is not defined: " + n.name().id());
-            // TODO implement continuation
+            setProcedureCallContinuation(actualTerminatingPairs);
             return null; // can't procede if procedure ins't defined
         }
         procedureCalled.add(n.name().id());
@@ -405,12 +405,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
         }
         // ---------------------
 
-        context.setTerminatingPairs(stillTerminatingPairs);
-
-        // Remove ordering couples with roles terminated inside procedure
-        for (TerminatingPair tp : actualTerminatingPairs) {
-            this.context.removeOrderingCouplesWithLeft(tp.createdRole());
-        }
+        // Set context for continuation
+        setProcedureCallContinuation(actualTerminatingPairs);
 
         return null;
     }
@@ -528,7 +524,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRolesAsMentioned(branchContext.getMentionedRoles());
     }
 
-    private void setupContinuationContext(List<TerminatingPair> D, CheckerContext ifContext,
+    private void setConditionalContinuation(List<TerminatingPair> D, CheckerContext ifContext,
             CheckerContext elseContext) {
 
         // Remove ordering couples with roles that terminated inside branches (term \ D)
@@ -669,6 +665,18 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // ---------------------
 
+    }
+
+    private void setProcedureCallContinuation(List<TerminatingPair> actualTerminatingPairs) {
+        List<TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
+        stillTerminatingPairs.removeAll(actualTerminatingPairs);
+
+        context.setTerminatingPairs(stillTerminatingPairs);
+
+        // Remove ordering couples with roles terminated inside procedure
+        for (TerminatingPair tp : actualTerminatingPairs) {
+            this.context.removeOrderingCouplesWithLeft(tp.createdRole());
+        }
     }
 
     private List<Role> extractStatefulRoles(ProcedureParameterList list) {

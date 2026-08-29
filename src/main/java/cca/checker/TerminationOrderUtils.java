@@ -1,9 +1,15 @@
 package cca.checker;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import cca.ast.procedure.OrderingCouple;
+import cca.exceptions.IllFormedException;
+import cca.ast.Role;
 
 public final class TerminationOrderUtils {
 
@@ -97,4 +103,86 @@ public final class TerminationOrderUtils {
 
         return true;
     }
+
+    public static List<IllFormedException> validateTerminationOrderInvariants(
+            Set<OrderingCouple> terminationOrder,
+            List<Role> statefulRoles,
+            List<Role> nonTerminatingRoles,
+            List<TerminatingPair> terminatingPairs) {
+
+        List<IllFormedException> errors = new ArrayList<>();
+        Set<Role> statefulSet = new HashSet<>(statefulRoles);
+        Set<Role> nonTermSet = new HashSet<>(nonTerminatingRoles);
+
+        Set<Role> createdTerminatingRoles = terminatingPairs.stream()
+                .map(TerminatingPair::createdRole)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Role> validCreatorRoles = new HashSet<>(statefulSet);
+        validCreatorRoles.addAll(nonTermSet);
+        validCreatorRoles.addAll(createdTerminatingRoles);
+
+        // All second elements of terminating pairs must be stateful,
+        // nonterm, term, or null
+        for (TerminatingPair tp : terminatingPairs) {
+            Role creator = tp.creatorRole();
+            if (creator != null && !validCreatorRoles.contains(creator)) {
+                errors.add(new IllFormedException(tp.position(),
+                        "Creator role " + creator + " must be stateful, non-terminating, or terminating"));
+            }
+        }
+
+        // Termination order must include all terminating pairs, excluding those with
+        // 0 as the second element
+        for (TerminatingPair tp : terminatingPairs) {
+            if (tp.creatorRole() != null) {
+                boolean containsPair = terminationOrder.stream()
+                        .anyMatch(c -> c.left().equals(tp.createdRole()) && c.right().equals(tp.creatorRole()));
+
+                if (!containsPair) {
+                    errors.add(new IllFormedException(tp.position(),
+                            "Termination order missing pair for terminating parameter: ("
+                                    + tp.createdRole() + ", " + tp.creatorRole() + ")"));
+                }
+            }
+        }
+
+        for (OrderingCouple couple : terminationOrder) {
+            // For every ordering couple it must exist a terminating pair with the same left
+            // role
+            if (!createdTerminatingRoles.contains(couple.left())) {
+                errors.add(new IllFormedException(couple.position(), "Left role of ordering couple " + couple.left()
+                        + " must be a terminating role"));
+            }
+
+            // The left role of an ordering couple must be a stateful, non term or left term
+            // role
+            if (!validCreatorRoles.contains(couple.right())) {
+                errors.add(
+                        new IllFormedException(couple.position(), "Right element of ordering couple " + couple.right()
+                                + " is not a valid role (must be stateful, non-terminating, or terminating)"));
+            }
+        }
+
+        // For every terminating pair (f, n) with n != 0, it cannot exist the ordering
+        // couple (n, f) in the termination order
+        for (TerminatingPair tp : terminatingPairs) {
+            Role f = tp.createdRole();
+            Role n = tp.creatorRole();
+
+            if (n != null) {
+                boolean hasInverseCycle = terminationOrder.stream()
+                        .anyMatch(c -> c.left().equals(n) && c.right().equals(f));
+
+                if (hasInverseCycle) {
+                    errors.add(new IllFormedException(tp.position(), "Termination order cannot contain inverse couple ["
+                            + n + ", " + f + "] for terminating pair [" + f + ", " + n + "]"));
+                }
+            }
+        }
+
+        return errors;
+    }
+
 }

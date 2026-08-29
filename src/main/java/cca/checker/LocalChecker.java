@@ -223,7 +223,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         addTerminatingPair(n.targetRole(), n.sourceRole());
         addOrderingCouple(n.targetRole(), n.sourceRole());
-        computeTerminationOrderTransitiveClosure();
+        context.computeTerminationOrderTransitiveClosure();
 
         // Add target role to current scope
         context.addStateless(n.targetRole());
@@ -275,83 +275,32 @@ public class LocalChecker extends AbstractVisitor<Void> {
         checkIsDefined(n.targetRole());
 
         TerminatingRolesCollector collector = new TerminatingRolesCollector();
-
         Set<TerminatingPair> ifTerminated = collector.visit(n.ifBranch());
         Set<TerminatingPair> elseTerminated = collector.visit(n.elseBranch());
 
-        // Define D, the set of terminating pairs that haven't terminated inside the two
+        // Check that branches terminate the same roles
+        checkBranchTerminatesEqually(n, ifTerminated, elseTerminated);
+
+        // Define D, the set of terminating pairs that haven't terminated in either
         // branch
         List<TerminatingPair> D = new ArrayList<>(context.getTerminatingPairs());
         D.removeIf(tp -> ifTerminated.contains(tp) || elseTerminated.contains(tp));
+        CheckerContext branchContext = createBranchContext(D);
 
-        // Add an error for each term that ends in one and does not end in the other
-        for (TerminatingPair tp : ifTerminated) {
-            if (!elseTerminated.contains(tp)) {
-                addError(n);
-            }
-        }
-        for (TerminatingPair tp : elseTerminated) {
-            if (!ifTerminated.contains(tp)) {
-                addError(n);
-            }
-        }
-
-        CheckerContext branchContext = this.context.copy();
-
-        // Add D to nonterminating roles
-        Set<Role> branchNonTerminating = new HashSet<>(context.getNonTerminatingRoles());
-        for (TerminatingPair tp : D) {
-            branchNonTerminating.add(tp.createdRole());
-        }
-        branchContext.setNonTerminatingRoles(branchNonTerminating);
-
-        // Remove D from terminating roles
-        List<TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
-        branchTerminating.removeAll(D);
-        branchContext.setTerminatingPairs(branchTerminating);
-
-        // Remove ordering couples with left role in D
-        for (TerminatingPair tp : D) {
-            branchContext.removeOrderingCouplesWithLeft(tp.createdRole());
-        }
-
+        // Visit if and else branches
+        CheckerContext ifContext = branchContext.copy();
+        CheckerContext elseContext = branchContext.copy();
         LocalChecker checker = new LocalChecker(procedureMap, branchContext);
 
-        // Visit if branch
-        CheckerContext ifContext = branchContext.copy();
         LocalCheckResult ifBranchResponse = checker.checkBranch(n.ifBranch(), ifContext);
+        LocalCheckResult elseBranchResponse = checker.checkBranch(n.elseBranch(), elseContext);
 
-        // Visit else branch
-        CheckerContext elseContext = branchContext.copy();
-        LocalCheckResult elseBrancResponse = checker.checkBranch(n.elseBranch(), elseContext);
-
-        // Insert errors
-        this.errors.addAll(ifBranchResponse.getErrors());
-        this.errors.addAll(elseBrancResponse.getErrors());
-
-        // Insert procedure called
-        this.procedureCalled.addAll(ifBranchResponse.getDiscoveredCalls());
-        this.procedureCalled.addAll(elseBrancResponse.getDiscoveredCalls());
-
-        // Insert mentioned roles
-        context.markRolesAsMentioned(ifContext.getMentionedRoles());
-        context.markRolesAsMentioned(elseContext.getMentionedRoles());
+        // Collect errors, procedures called and mentioned roles
+        gatherBranchResult(ifBranchResponse, ifContext);
+        gatherBranchResult(elseBranchResponse, elseContext);
 
         // Set context for continuation
-
-        // Remove ordering couples with term\D roles
-        for (TerminatingPair tp : branchTerminating) {
-            this.context.removeOrderingCouplesWithLeft(tp.createdRole());
-        }
-
-        // Set D as terminatingPairs
-        this.context.setTerminatingPairs(D);
-
-        // Add stateless created inside branchs
-        Set<Role> continuationStateless = this.context.getStatelessRoles();
-        continuationStateless.addAll(ifContext.getStatelessRoles());
-        continuationStateless.addAll(elseContext.getStatelessRoles());
-        this.context.setStatelessRoles(continuationStateless);
+        setupContinuationContext(D, ifContext, elseContext);
 
         return null;
     }
@@ -650,16 +599,88 @@ public class LocalChecker extends AbstractVisitor<Void> {
         return true;
     }
 
+    private void checkBranchTerminatesEqually(
+            Conditional n,
+            Set<TerminatingPair> ifTerminated,
+            Set<TerminatingPair> elseTerminated) {
+
+        for (TerminatingPair tp : ifTerminated) {
+            if (!elseTerminated.contains(tp)) {
+                addError(n, "Terminating role '" + tp.createdRole()
+                        + "' terminates in 'if' branch but not in 'else' branch");
+            }
+        }
+        for (TerminatingPair tp : elseTerminated) {
+            if (!ifTerminated.contains(tp)) {
+                addError(n, "Terminating role '" + tp.createdRole()
+                        + "' terminates in 'else' branch but not in 'if' branch");
+            }
+        }
+    }
+
+    private CheckerContext createBranchContext(List<TerminatingPair> D) {
+        CheckerContext branchContext = this.context.copy();
+
+        // Add D to nonterminating roles
+        Set<Role> branchNonTerminating = new HashSet<>(context.getNonTerminatingRoles());
+        for (TerminatingPair tp : D) {
+            branchNonTerminating.add(tp.createdRole());
+        }
+        branchContext.setNonTerminatingRoles(branchNonTerminating);
+
+        // Remove D from terminating roles
+        List<TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
+        branchTerminating.removeAll(D);
+        branchContext.setTerminatingPairs(branchTerminating);
+
+        // Remove ordering couples with left role in D
+        for (TerminatingPair tp : D) {
+            branchContext.removeOrderingCouplesWithLeft(tp.createdRole());
+        }
+
+        return branchContext;
+    }
+
+    private void gatherBranchResult(LocalCheckResult branchResponse, CheckerContext branchContext) {
+        // Insert errors
+        this.errors.addAll(branchResponse.getErrors());
+
+        // Insert procedure called
+        this.procedureCalled.addAll(branchResponse.getDiscoveredCalls());
+
+        // Insert mentioned roles
+        context.markRolesAsMentioned(branchContext.getMentionedRoles());
+    }
+
+    private void setupContinuationContext(List<TerminatingPair> D, CheckerContext ifContext,
+            CheckerContext elseContext) {
+
+        // Remove ordering couples with roles that terminated inside branches (term \ D)
+        List<TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
+        branchTerminating.removeAll(D);
+
+        // Remove ordering couples with term\D roles
+        for (TerminatingPair tp : branchTerminating) {
+            this.context.removeOrderingCouplesWithLeft(tp.createdRole());
+        }
+
+        // Set D as terminatingPairs
+        this.context.setTerminatingPairs(D);
+
+        // Add stateless created inside branchs
+        Set<Role> continuationStateless = this.context.getStatelessRoles();
+        continuationStateless.addAll(ifContext.getStatelessRoles());
+        continuationStateless.addAll(elseContext.getStatelessRoles());
+        this.context.setStatelessRoles(continuationStateless);
+
+    }
+
     private void addTerminatingPair(Role created, Role creator) {
         context.addTerminatingPair(created, creator);
     }
 
     private void removeTerminatingPair(Role created, Role creator) {
         context.removeTerminatingPair(created, creator);
-    }
-
-    private boolean isTerm(TerminatingPair t) {
-        return context.isTerm(t);
     }
 
     private OrderingCouple createOrderingCouple(Role left, Role right) {
@@ -672,18 +693,6 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     private void removeOrderingCouplesWithLeft(Role r) {
         context.removeOrderingCouplesWithLeft(r);
-    }
-
-    private void computeTerminationOrderTransitiveClosure() {
-        context.computeTerminationOrderTransitiveClosure();
-    }
-
-    private boolean isDefined(Role r) {
-        return context.isDefined(r);
-    }
-
-    private boolean isFree(Role r) {
-        return context.isFree(r);
     }
 
     private void addError(Node n) {

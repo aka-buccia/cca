@@ -312,137 +312,24 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // iterate terminating pairs with (f, s)
         List<TerminatingPair> actualTerminatingPairs = extractTerminatingPairs(n.parameterList());
 
-        // Actual stateful parameters has to be mentionable
-        for (Role r : actualStatefulRoles) {
-            if (!context.isStateful(r)) {
-                addError(r);
-            }
-        }
-        // ---------------------
-
-        // Actual non terminating parameters has to be mentionable
-        for (Role r : actualNonTerminatingRoles) {
-            if (!context.isStateful(r) && !context.isNonTerm(r) && !context.isTerm(new TerminatingPair(r, null))) {
-                addError(r);
-            }
-        }
-        // ---------------------
-
-        // Actual terminating parameters has to be mentionable
-        for (TerminatingPair tp : actualTerminatingPairs) {
-            if (!context.isTerm(tp)) {
-                addError(tp.position());
-            }
-        }
-        // ---------------------
-
-        // actualStatefulRoles can't be duplicated
-        // p_i != p_j
-        checkRoleDuplicates(actualStatefulRoles, "Duplicate actual stateful parameter: ");
-
-        // actualNonTerminatingRoles can't be duplicated
-        // n_i != n_j
-        checkRoleDuplicates(actualNonTerminatingRoles, "Duplicate actual non-terminating parameter: ");
-        // ---------------------
-
-        // left roles in actualTerminatingPairs can't be duplicated
-        // f_i != f_j
-        checkTerminatingDuplicates(actualTerminatingPairs);
-        // ---------------------
-
-        // check p_i != n_j != f_k != s_k:
-        checkCrossParameterDisjointness(actualStatefulRoles, actualNonTerminatingRoles, actualTerminatingPairs); // ---------------------
-        // ---------------------
+        checkActualParameters(actualStatefulRoles, actualNonTerminatingRoles, actualTerminatingPairs);
 
         // The procedure and his termination order must be in procedureMap
         if (!procedureMap.containsKey(n.name().id())) {
-            addError(n.name());
-            return null; // can't procede if procedure ins't defined
+            addError(n.name(), "Procedure is not defined: " + n.name().id());
             // TODO implement continuation
+            return null; // can't procede if procedure ins't defined
         }
         procedureCalled.add(n.name().id());
         // ---------------------
 
         ProcedureParameterList procedureCalledParameters = procedureMap.get(n.name().id()).signature().parameterList();
-        List<Role> formalStatefulRoles = procedureCalledParameters.statefulParameters().stream()
-                .map(StatefulParameter::parameter)
-                .collect(Collectors.toList());
+        List<Role> formalStatefulRoles = extractStatefulRoles(procedureCalledParameters);
+        List<Role> formalNonTerminatingRoles = extractNonTerminatingRoles(procedureCalledParameters);
+        List<TerminatingPair> formalTerminatingPairs = extractTerminatingPairs(procedureCalledParameters);
 
-        List<Role> formalNonTerminatingRoles = procedureCalledParameters.nonTerminatingParameters().stream()
-                .map(NonTerminatingParameter::parameter)
-                .collect(Collectors.toList());
-
-        List<TerminatingPair> formalTerminatingPairs = procedureCalledParameters.terminatingParameters().stream()
-                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
-                .collect(Collectors.toList());
-
-        // n. of actual and formal stateful params has to be the same
-        if (actualStatefulRoles.size() != formalStatefulRoles.size()) {
-            addError(n.parameterList());
-        }
-        // ---------------------
-
-        // n. of actual and formal non term params has to be the same
-        if (actualNonTerminatingRoles.size() != formalNonTerminatingRoles.size()) {
-            addError(n.parameterList());
-        }
-        // ---------------------
-
-        // n. of actual and formal term params has to be the same
-        if (actualTerminatingPairs.size() != formalTerminatingPairs.size()) {
-            addError(n.parameterList());
-        }
-        // ---------------------
-
-        // All formal term params has to match the corresponding formal param
-        for (int index = 0; index < actualTerminatingPairs.size(); index++) {
-            TerminatingPair actualTp = actualTerminatingPairs.get(index);
-
-            if (index < formalTerminatingPairs.size()) {
-                TerminatingPair expectedTp = formalTerminatingPairs.get(index);
-
-                boolean actualRightIsNull = actualTp.creatorRole() == null;
-                boolean expectedRightIsNull = expectedTp.creatorRole() == null;
-
-                // Error if actual is 0 and formal no, or vice-versa
-                if (actualRightIsNull != expectedRightIsNull) {
-                    addError(actualTp.position());
-                }
-            }
-        }
-        // ---------------------
-
-        // When two formal params are the same, the corresponding actual param must be
-        // the same
-        List<Role> actualCreatorRoles = actualTerminatingPairs.stream()
-                .map(TerminatingPair::creatorRole)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        List<Role> formalCreatorRoles = formalTerminatingPairs.stream()
-                .map(TerminatingPair::creatorRole)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        // p_i == s_j in formal parameters must hold p_i == s_j in actual parameters
-        checkCorrespondence(
-                formalStatefulRoles, formalCreatorRoles,
-                actualStatefulRoles, actualCreatorRoles,
-                false);
-
-        // n_i == s_j in formal parameters must hold n_i == s_j in actual parameters
-        checkCorrespondence(
-                formalNonTerminatingRoles, formalCreatorRoles,
-                actualNonTerminatingRoles, actualCreatorRoles,
-                false);
-
-        // s_i == s_j in formal parameters must hold s_i == s_j in actual parameters
-        checkCorrespondence(
-                formalCreatorRoles, formalCreatorRoles,
-                actualCreatorRoles, actualCreatorRoles,
-                true);
-
-        // ---------------------
+        checkFormalActualParamMatch(n.parameterList(), actualStatefulRoles, formalStatefulRoles,
+                actualNonTerminatingRoles, formalNonTerminatingRoles, actualTerminatingPairs, formalTerminatingPairs);
 
         // Check that procedure call doesn't broke termination order
         List<TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
@@ -661,6 +548,126 @@ public class LocalChecker extends AbstractVisitor<Void> {
         continuationStateless.addAll(ifContext.getStatelessRoles());
         continuationStateless.addAll(elseContext.getStatelessRoles());
         this.context.setStatelessRoles(continuationStateless);
+
+    }
+
+    private void checkActualParameters(
+            List<Role> actualStatefulRoles,
+            List<Role> actualNonTerminatingRoles,
+            List<TerminatingPair> actualTerminatingPairs) {
+
+        // Actual stateful parameters has to be mentionable
+        for (Role r : actualStatefulRoles) {
+            checkIsStateful(r, "Actual stateful parameter must be stateful: " + r);
+        }
+        // ---------------------
+
+        // Actual non terminating parameters has to be mentionable
+        for (Role r : actualNonTerminatingRoles) {
+            if (!context.isStateful(r) && !context.isNonTerm(r) && !context.isTerm(new TerminatingPair(r, null))) {
+                addError(r, "Invalid actual non-terminating parameter: " + r);
+            }
+        }
+        // ---------------------
+
+        // Actual terminating parameters has to be mentionable
+        for (TerminatingPair tp : actualTerminatingPairs) {
+            checkIsTerminatingPairValid(tp, "Invalid actual terminating parameter: " + tp);
+        }
+        // ---------------------
+
+        // actualStatefulRoles can't be duplicated
+        // p_i != p_j
+        checkRoleDuplicates(actualStatefulRoles, "Duplicate actual stateful parameter: ");
+
+        // actualNonTerminatingRoles can't be duplicated
+        // n_i != n_j
+        checkRoleDuplicates(actualNonTerminatingRoles, "Duplicate actual non-terminating parameter: ");
+        // ---------------------
+
+        // left roles in actualTerminatingPairs can't be duplicated
+        // f_i != f_j
+        checkTerminatingDuplicates(actualTerminatingPairs);
+        // ---------------------
+
+        // check p_i != n_j != f_k != s_k:
+        checkCrossParameterDisjointness(actualStatefulRoles, actualNonTerminatingRoles, actualTerminatingPairs); // ---------------------
+        // ---------------------
+    }
+
+    private void checkFormalActualParamMatch(
+            ProcedureParameterList actualParamList,
+            List<Role> actualStatefulRoles, List<Role> formalStatefulRoles,
+            List<Role> actualNonTerminatingRoles, List<Role> formalNonTerminatingRoles,
+            List<TerminatingPair> actualTerminatingPairs, List<TerminatingPair> formalTerminatingPairs) {
+
+        // n. of actual and formal stateful params has to be the same
+        if (actualStatefulRoles.size() != formalStatefulRoles.size()) {
+            addError(actualParamList, "Stateful parameters count mismatch");
+        }
+        // ---------------------
+
+        // n. of actual and formal non term params has to be the same
+        if (actualNonTerminatingRoles.size() != formalNonTerminatingRoles.size()) {
+            addError(actualParamList, "Non-terminating parameters count mismatch");
+        }
+        // ---------------------
+
+        // n. of actual and formal term params has to be the same
+        if (actualTerminatingPairs.size() != formalTerminatingPairs.size()) {
+            addError(actualParamList, "Terminating parameters count mismatch");
+        }
+        // ---------------------
+
+        // All formal term params has to match the corresponding formal param
+        for (int index = 0; index < actualTerminatingPairs.size(); index++) {
+            TerminatingPair actualTp = actualTerminatingPairs.get(index);
+
+            if (index < formalTerminatingPairs.size()) {
+                TerminatingPair expectedTp = formalTerminatingPairs.get(index);
+
+                boolean actualRightIsNull = actualTp.creatorRole() == null;
+                boolean expectedRightIsNull = expectedTp.creatorRole() == null;
+
+                // Error if actual is 0 and formal no, or vice-versa
+                if (actualRightIsNull != expectedRightIsNull) {
+                    addError(actualTp.position(), "Mismatch in creator role presence for terminating parameter");
+                }
+            }
+        }
+        // ---------------------
+
+        // When two formal params are the same, the corresponding actual param must be
+        // the same
+        List<Role> actualCreatorRoles = actualTerminatingPairs.stream()
+                .map(TerminatingPair::creatorRole)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        List<Role> formalCreatorRoles = formalTerminatingPairs.stream()
+                .map(TerminatingPair::creatorRole)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // p_i == s_j in formal parameters must hold p_i == s_j in actual parameters
+        checkCorrespondence(
+                formalStatefulRoles, formalCreatorRoles,
+                actualStatefulRoles, actualCreatorRoles,
+                false);
+
+        // n_i == s_j in formal parameters must hold n_i == s_j in actual parameters
+        checkCorrespondence(
+                formalNonTerminatingRoles, formalCreatorRoles,
+                actualNonTerminatingRoles, actualCreatorRoles,
+                false);
+
+        // s_i == s_j in formal parameters must hold s_i == s_j in actual parameters
+        checkCorrespondence(
+                formalCreatorRoles, formalCreatorRoles,
+                actualCreatorRoles, actualCreatorRoles,
+                true);
+
+        // ---------------------
 
     }
 

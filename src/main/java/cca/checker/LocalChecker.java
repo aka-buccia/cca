@@ -156,18 +156,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Stateful roles has to be different
         if (n.leftRole().equals(n.rightRole())) {
-            addError(n);
+            addError(n, "Source and target roles must be different");
         }
 
-        // Left role has to be stateful
-        if (!context.isStateful(n.leftRole())) {
-            addError(n.leftRole());
-        }
-
-        // Right role has to be stateful
-        if (!context.isStateful(n.rightRole())) {
-            addError(n.rightRole());
-        }
+        // Left and right roles has to be stateful
+        checkIsStateful(n.leftRole(), "Source role must be stateful: " + n.leftRole());
+        checkIsStateful(n.rightRole(), "Target role must be stateful: " + n.rightRole());
 
         return null;
     }
@@ -179,18 +173,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Stateful roles has to be different
         if (n.sourceRole().equals(n.targetRole())) {
-            addError(n);
+            addError(n, "Source and target roles must be different");
         }
 
-        // Source role has to be stateful
-        if (!context.isStateful(n.sourceRole())) {
-            addError(n.sourceRole());
-        }
-
-        // Target role has to be stateful
-        if (!context.isStateful(n.targetRole())) {
-            addError(n.targetRole());
-        }
+        // Source and target roles has to be stateful
+        checkIsStateful(n.sourceRole(), "Source role must be stateful: " + n.sourceRole());
+        checkIsStateful(n.targetRole(), "Target role must be stateful: " + n.targetRole());
 
         return null;
     }
@@ -199,10 +187,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
     public Void visit(Assignment n) {
         context.markRoleAsMentioned(n.targetRole());
 
-        // Target role has to be defined as stateful or nonterminating
-        if (!isDefined(n.targetRole())) {
-            addError(n.targetRole());
-        }
+        // Check role is defined (stateful or stateless)
+        checkIsDefined(n.targetRole());
 
         return null;
     }
@@ -212,18 +198,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRoleAsMentioned(n.targetRole());
         context.markRoleAsMentioned(n.sourceRole());
 
-        // Source role has to be defined as stateful or nonterminating
-        if (!isDefined(n.sourceRole())) {
-            addError(n.sourceRole());
-        }
-
-        // Target role has to not be in the current scope
-        if (context.isInScope(n.targetRole())) {
-            addError(n.targetRole());
-        }
+        // Check source role is defined
+        checkIsDefined(n.sourceRole());
+        // Target role must not be in scope
+        checkNotInScope(n.targetRole(), "Target role must not be in current scope: " + n.targetRole());
 
         addTerminatingPair(n.targetRole(), null);
-
         // Add target role to current scope
         context.addStateless(n.targetRole());
 
@@ -236,17 +216,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRoleAsMentioned(n.sourceRole());
 
         // Source role has to be defined as stateful or nonterminating
-        if (!isDefined(n.sourceRole())) {
-            addError(n.sourceRole());
-        }
+        checkIsDefined(n.sourceRole());
 
         // Target role has to not be in the current scope
-        if (context.isInScope(n.targetRole())) {
-            addError(n.targetRole());
-        }
+        checkNotInScope(n.targetRole(), "Target role must not be in current scope: " + n.targetRole());
 
         addTerminatingPair(n.targetRole(), n.sourceRole());
-
         addOrderingCouple(n.targetRole(), n.sourceRole());
         computeTerminationOrderTransitiveClosure();
 
@@ -261,14 +236,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRoleAsMentioned(n.endingRole());
 
         // Ending role has to be a stateless role without creator
-        if (!isTerm(new TerminatingPair(n.endingRole(), null))) {
-            addError(n.endingRole());
-        }
+        checkIsTerminatingPairValid(
+                new TerminatingPair(n.endingRole(), null),
+                "Ending role must be a stateless role without creator: " + n.endingRole());
 
         // Ending role has to be free from waiting a response
-        if (!isFree(n.endingRole())) {
-            addError(n.endingRole());
-        }
+        checkIsFree(n.endingRole(), "Ending role must be free from waiting a response: " + n.endingRole());
 
         removeTerminatingPair(n.endingRole(), null);
 
@@ -280,15 +253,13 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRoleAsMentioned(n.endingRole());
         context.markRoleAsMentioned(n.targetRole());
 
-        // Ending role has to be a stateless role without creator
-        if (!isTerm(new TerminatingPair(n.endingRole(), n.targetRole()))) {
-            addError(n.endingRole());
-        }
+        // Ending role has to be a stateless role with a creator
+        checkIsTerminatingPairValid(
+                new TerminatingPair(n.endingRole(), n.targetRole()),
+                "Ending role '" + n.endingRole() + "' must be a stateless role created by '" + n.targetRole() + "'");
 
         // Ending role has to be free from waiting a response
-        if (!isFree(n.endingRole())) {
-            addError(n.endingRole());
-        }
+        checkIsFree(n.endingRole(), "Ending role must be free from waiting a response: " + n.endingRole());
 
         removeTerminatingPair(n.endingRole(), n.targetRole());
         removeOrderingCouplesWithLeft(n.endingRole());
@@ -301,9 +272,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRoleAsMentioned(n.targetRole());
 
         // Guard role has to be defined
-        if (!context.isDefined(n.targetRole())) {
-            addError(n.targetRole());
-        }
+        checkIsDefined(n.targetRole());
 
         TerminatingRolesCollector collector = new TerminatingRolesCollector();
 
@@ -623,6 +592,64 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     // Helpers
 
+    private boolean checkIsStateful(Role role, String errorMessage) {
+        if (!context.isStateful(role)) {
+            addError(role, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkIsStateful(Role role) {
+        return checkIsStateful(role, "Role must be stateful: " + role);
+    }
+
+    private boolean checkAreStateful(List<Role> roles, String errorMessagePrefix) {
+        boolean valid = true;
+        for (Role r : roles) {
+            if (!checkIsStateful(r, errorMessagePrefix + r)) {
+                valid = false;
+            }
+        }
+        return valid;
+    }
+
+    private boolean checkIsDefined(Role role, String errorMessage) {
+        if (!context.isDefined(role)) {
+            addError(role, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkIsDefined(Role role) {
+        return checkIsDefined(role, "Role must be defined: " + role);
+    }
+
+    private boolean checkNotInScope(Role role, String errorMessage) {
+        if (context.isInScope(role)) {
+            addError(role, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkIsTerminatingPairValid(TerminatingPair tp, String errorMessage) {
+        if (!context.isTerm(tp)) {
+            addError(tp.position(), errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkIsFree(Role role, String errorMessage) {
+        if (!context.isFree(role)) {
+            addError(role, errorMessage);
+            return false;
+        }
+        return true;
+    }
+
     private void addTerminatingPair(Role created, Role creator) {
         context.addTerminatingPair(created, creator);
     }
@@ -876,8 +903,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
                         .anyMatch(c -> c.left().equals(n) && c.right().equals(f));
 
                 if (hasInverseCycle) {
-                    addError(tp.position(), "Termination order cannot contain inverse couple ("
-                            + n + ", " + f + ") for terminating pair (" + f + ", " + n + ")");
+                    addError(tp.position(), "Termination order cannot contain inverse couple ["
+                            + n + ", " + f + "] for terminating pair [" + f + ", " + n + "]");
                 }
             }
         }

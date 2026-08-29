@@ -90,6 +90,8 @@ public class CheckerContext {
         return mentionedRoles;
     }
 
+    // Setters
+
     public void setNonTerminatingRoles(Set<Role> nonTerminatingRoles) {
         this.nonTerminatingRoles = nonTerminatingRoles;
     }

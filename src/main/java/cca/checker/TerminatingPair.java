@@ -53,4 +53,9 @@ public class TerminatingPair {
                 Objects.equals(this.creatorRole, other.creatorRole);
     }
 
+    @Override
+    public String toString() {
+        return "[" + createdRole + ", " + (creatorRole != null ? creatorRole.toString() : "0") + "]";
+    }
+
 }

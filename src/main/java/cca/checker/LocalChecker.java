@@ -68,17 +68,9 @@ public class LocalChecker extends AbstractVisitor<Void> {
         ProcedureParameterList params = signature.parameterList();
         Set<OrderingCouple> terminationOrder = signature.terminationOrder().getOrderingCouples();
 
-        List<Role> statefulRoles = params.statefulParameters().stream()
-                .map(StatefulParameter::parameter)
-                .collect(Collectors.toList());
-
-        List<Role> nonTerminatingRoles = params.nonTerminatingParameters().stream()
-                .map(NonTerminatingParameter::parameter)
-                .collect(Collectors.toList());
-
-        List<TerminatingPair> terminatingPairs = params.terminatingParameters().stream()
-                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
-                .collect(Collectors.toList());
+        List<Role> statefulRoles = extractStatefulRoles(params);
+        List<Role> nonTerminatingRoles = extractNonTerminatingRoles(params);
+        List<TerminatingPair> terminatingPairs = extractTerminatingPairs(params);
 
         // all parameters must be distinct (with some exceptions for terminating pairs)
         checkRoleDuplicates(statefulRoles, "Stateful role duplicated: ");
@@ -313,17 +305,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
         Set<Role> procedureCallMentionedRoles = tranformProcedureParameterInRoleSet(n.parameterList());
         context.markRolesAsMentioned(procedureCallMentionedRoles);
 
-        List<Role> actualStatefulRoles = n.parameterList().statefulParameters().stream()
-                .map(StatefulParameter::parameter)
-                .collect(Collectors.toList()); // iterate with p
-
-        List<Role> actualNonTerminatingRoles = n.parameterList().nonTerminatingParameters().stream()
-                .map(NonTerminatingParameter::parameter)
-                .collect(Collectors.toList()); // iterate with n
-
-        List<TerminatingPair> actualTerminatingPairs = n.parameterList().terminatingParameters().stream()
-                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
-                .collect(Collectors.toList()); // iterate with (f, s)
+        // iterate stateful roles with p
+        List<Role> actualStatefulRoles = extractStatefulRoles(n.parameterList());
+        // iterate non terminating roles with n
+        List<Role> actualNonTerminatingRoles = extractNonTerminatingRoles(n.parameterList());
+        // iterate terminating pairs with (f, s)
+        List<TerminatingPair> actualTerminatingPairs = extractTerminatingPairs(n.parameterList());
 
         // Actual stateful parameters has to be mentionable
         for (Role r : actualStatefulRoles) {
@@ -675,6 +662,24 @@ public class LocalChecker extends AbstractVisitor<Void> {
         continuationStateless.addAll(elseContext.getStatelessRoles());
         this.context.setStatelessRoles(continuationStateless);
 
+    }
+
+    private List<Role> extractStatefulRoles(ProcedureParameterList list) {
+        return list.statefulParameters().stream()
+                .map(StatefulParameter::parameter)
+                .collect(Collectors.toList());
+    }
+
+    private List<Role> extractNonTerminatingRoles(ProcedureParameterList list) {
+        return list.nonTerminatingParameters().stream()
+                .map(NonTerminatingParameter::parameter)
+                .collect(Collectors.toList());
+    }
+
+    private List<TerminatingPair> extractTerminatingPairs(ProcedureParameterList list) {
+        return list.terminatingParameters().stream()
+                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
+                .collect(Collectors.toList());
     }
 
     private void addTerminatingPair(Role created, Role creator) {

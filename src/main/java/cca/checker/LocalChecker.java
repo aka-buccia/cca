@@ -331,79 +331,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         checkFormalActualParamMatch(n.parameterList(), actualStatefulRoles, formalStatefulRoles,
                 actualNonTerminatingRoles, formalNonTerminatingRoles, actualTerminatingPairs, formalTerminatingPairs);
 
-        // Check that procedure call doesn't broke termination order
-        List<TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
-        stillTerminatingPairs.removeAll(actualTerminatingPairs);
-
-        Set<Role> stillTermLeftRoles = stillTerminatingPairs.stream()
-                .map(TerminatingPair::createdRole)
-                .collect(Collectors.toSet());
-
-        Set<Role> actualTermLeftRoles = actualTerminatingPairs.stream()
-                .map(TerminatingPair::createdRole)
-                .collect(Collectors.toSet());
-
-        Set<OrderingCouple> contextTerminationOrder = context.getTerminationOrder();
-
-        // For every couple f,g verify that f <: g doesn't exists
-        for (Role f : stillTermLeftRoles) {
-            for (Role g : actualTermLeftRoles) {
-                boolean existsInOrder = contextTerminationOrder.contains(createOrderingCouple(f, g));
-
-                if (existsInOrder) {
-                    addError(g);
-                }
-            }
-        }
-        // ---------------------
-
-        // if in actualTerminatingPairs there's (f_i, s_i) and (s_i, s_j), then ordering
-        // couple (f_i, f_j) must be declared in procedure called
-        Set<OrderingCouple> procedureTerminationOrder = procedureMap.get(n.name().id())
-                .signature().terminationOrder().getOrderingCouples();
-        for (int i = 0; i < actualTerminatingPairs.size(); i++) {
-            TerminatingPair pairI = actualTerminatingPairs.get(i);
-            Role s_i = pairI.creatorRole();
-
-            for (int j = 0; j < actualTerminatingPairs.size(); j++) {
-                TerminatingPair pairJ = actualTerminatingPairs.get(j);
-                Role f_j = pairJ.createdRole();
-
-                if (s_i != null && s_i.equals(f_j)) {
-                    Role f_i_p = formalTerminatingPairs.get(i).createdRole();
-                    Role f_j_p = formalTerminatingPairs.get(j).createdRole();
-                    OrderingCouple expectedOrderingCouple = createOrderingCouple(f_i_p, f_j_p);
-
-                    if (!procedureTerminationOrder.contains(expectedOrderingCouple)) {
-                        addError(s_i);
-                    }
-                }
-            }
-        }
-        // ---------------------
-
-        // for every ordering couple (f_i, f_j) in context must exist a (f_i_p, f_j_p)
-        // ordering couple declared in procedure called
-        for (int i = 0; i < actualTerminatingPairs.size(); i++) {
-            Role f_i = actualTerminatingPairs.get(i).createdRole();
-            for (int j = 0; j < actualTerminatingPairs.size(); j++) {
-                Role f_j = actualTerminatingPairs.get(j).createdRole();
-
-                OrderingCouple contextOrderingCouple = createOrderingCouple(f_i, f_j);
-
-                if (contextTerminationOrder.contains(contextOrderingCouple)) {
-                    Role f_i_p = formalTerminatingPairs.get(i).createdRole();
-                    Role f_j_p = formalTerminatingPairs.get(j).createdRole();
-                    OrderingCouple expectedOrderingCouple = createOrderingCouple(f_i_p, f_j_p);
-
-                    if (!procedureTerminationOrder.contains(expectedOrderingCouple)) {
-                        addError(f_j);
-                    }
-
-                }
-            }
-        }
-        // ---------------------
+        checkTerminationOrderPreservation(n, actualTerminatingPairs, formalTerminatingPairs);
 
         // Set context for continuation
         setProcedureCallContinuation(actualTerminatingPairs);
@@ -419,20 +347,6 @@ public class LocalChecker extends AbstractVisitor<Void> {
             return false;
         }
         return true;
-    }
-
-    private boolean checkIsStateful(Role role) {
-        return checkIsStateful(role, "Role must be stateful: " + role);
-    }
-
-    private boolean checkAreStateful(List<Role> roles, String errorMessagePrefix) {
-        boolean valid = true;
-        for (Role r : roles) {
-            if (!checkIsStateful(r, errorMessagePrefix + r)) {
-                valid = false;
-            }
-        }
-        return valid;
     }
 
     private boolean checkIsDefined(Role role, String errorMessage) {
@@ -665,6 +579,87 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // ---------------------
 
+    }
+
+    private void checkTerminationOrderPreservation(ProcedureCall n,
+            List<TerminatingPair> actualTerminatingPairs,
+            List<TerminatingPair> formalTerminatingPairs) {
+
+        // Check that procedure call doesn't broke termination order
+        List<TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
+        stillTerminatingPairs.removeAll(actualTerminatingPairs);
+
+        Set<Role> stillTermLeftRoles = stillTerminatingPairs.stream()
+                .map(TerminatingPair::createdRole)
+                .collect(Collectors.toSet());
+
+        Set<Role> actualTermLeftRoles = actualTerminatingPairs.stream()
+                .map(TerminatingPair::createdRole)
+                .collect(Collectors.toSet());
+
+        Set<OrderingCouple> contextTerminationOrder = context.getTerminationOrder();
+
+        // For every couple f,g verify that f <: g doesn't exists
+        for (Role f : stillTermLeftRoles) {
+            for (Role g : actualTermLeftRoles) {
+                boolean existsInOrder = contextTerminationOrder.contains(createOrderingCouple(f, g));
+
+                if (existsInOrder) {
+                    addError(g, "Procedure call breaks termination order for role: " + g
+                            + ". It should terminate after '" + f + "'");
+                }
+            }
+        }
+        // ---------------------
+
+        // if in actualTerminatingPairs there's (f_i, s_i) and (s_i, s_j), then ordering
+        // couple (f_i, f_j) must be declared in procedure called
+        Set<OrderingCouple> procedureTerminationOrder = procedureMap.get(n.name().id())
+                .signature().terminationOrder().getOrderingCouples();
+        for (int i = 0; i < actualTerminatingPairs.size(); i++) {
+            TerminatingPair pairI = actualTerminatingPairs.get(i);
+            Role s_i = pairI.creatorRole();
+
+            for (int j = 0; j < actualTerminatingPairs.size(); j++) {
+                TerminatingPair pairJ = actualTerminatingPairs.get(j);
+                Role f_j = pairJ.createdRole();
+
+                if (s_i != null && s_i.equals(f_j)) {
+                    Role f_i_p = formalTerminatingPairs.get(i).createdRole();
+                    Role f_j_p = formalTerminatingPairs.get(j).createdRole();
+                    OrderingCouple expectedOrderingCouple = createOrderingCouple(f_i_p, f_j_p);
+
+                    if (!procedureTerminationOrder.contains(expectedOrderingCouple)) {
+                        addError(s_i,
+                                "Missing required ordering couple in called procedure for stateless creator: " + s_i);
+                    }
+                }
+            }
+        }
+        // ---------------------
+
+        // for every ordering couple (f_i, f_j) in context must exist a (f_i_p, f_j_p)
+        // ordering couple declared in procedure called
+        for (int i = 0; i < actualTerminatingPairs.size(); i++) {
+            Role f_i = actualTerminatingPairs.get(i).createdRole();
+            for (int j = 0; j < actualTerminatingPairs.size(); j++) {
+                Role f_j = actualTerminatingPairs.get(j).createdRole();
+
+                OrderingCouple contextOrderingCouple = createOrderingCouple(f_i, f_j);
+
+                if (contextTerminationOrder.contains(contextOrderingCouple)) {
+                    Role f_i_p = formalTerminatingPairs.get(i).createdRole();
+                    Role f_j_p = formalTerminatingPairs.get(j).createdRole();
+                    OrderingCouple expectedOrderingCouple = createOrderingCouple(f_i_p, f_j_p);
+
+                    if (!procedureTerminationOrder.contains(expectedOrderingCouple)) {
+                        addError(f_j, "Termination order in context not declared in procedure call for role: " + f_j);
+                    }
+
+                }
+            }
+        }
+        // ---------------------
     }
 
     private void setProcedureCallContinuation(List<TerminatingPair> actualTerminatingPairs) {

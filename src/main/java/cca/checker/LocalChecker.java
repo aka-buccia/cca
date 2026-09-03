@@ -86,9 +86,9 @@ public class LocalChecker extends AbstractVisitor<Void> {
             addError(signature.terminationOrder().position(), "Termination order must be a strict partial order");
         }
 
-        this.errors.addAll(
-                TerminationOrderUtils.validateTerminationOrderInvariants(
-                        terminationOrder, statefulRoles, nonTerminatingRoles, terminatingPairs));
+        // this.errors.addAll(
+        // TerminationOrderUtils.validateTerminationOrderInvariants(
+        // terminationOrder, statefulRoles, nonTerminatingRoles, terminatingPairs));
 
     }
 
@@ -129,7 +129,9 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // All terminating roles has to terminate before procedure termination
         if (!terminatingPairs.isEmpty()) {
             for (TerminatingPair missingPair : terminatingPairs) {
-                addError(missingPair.createdRole().position());
+                addError(missingPair.createdRole().position(),
+                        "Terminating created role '" + missingPair.createdRole()
+                                + "' must terminate before procedure termination");
             }
         }
 
@@ -154,8 +156,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
         }
 
         // Left and right roles has to be stateful
-        checkIsStateful(n.leftRole(), "Source role must be stateful: " + n.leftRole());
-        checkIsStateful(n.rightRole(), "Target role must be stateful: " + n.rightRole());
+        checkIsStateful(n.leftRole(), "Source role '" + n.leftRole() + "' must be stateful");
+        checkIsStateful(n.rightRole(), "Target role '" + n.rightRole() + "' must be stateful");
 
         return null;
     }
@@ -171,8 +173,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
         }
 
         // Source and target roles has to be stateful
-        checkIsStateful(n.sourceRole(), "Source role must be stateful: " + n.sourceRole());
-        checkIsStateful(n.targetRole(), "Target role must be stateful: " + n.targetRole());
+        checkIsStateful(n.sourceRole(), "Source role '" + n.sourceRole() + "' must be stateful");
+        checkIsStateful(n.targetRole(), "Target role '" + n.targetRole() + "' must be stateful");
 
         return null;
     }
@@ -195,7 +197,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // Check source role is defined
         checkIsDefined(n.sourceRole());
         // Target role must not be in scope
-        checkNotInScope(n.targetRole(), "Target role must not be in current scope: " + n.targetRole());
+        checkNotInScope(n.targetRole(), "Target role '" + n.targetRole() + "' must not be in current scope");
 
         addTerminatingPair(n.targetRole(), null);
         // Add target role to current scope
@@ -213,7 +215,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         checkIsDefined(n.sourceRole());
 
         // Target role has to not be in the current scope
-        checkNotInScope(n.targetRole(), "Target role must not be in current scope: " + n.targetRole());
+        checkNotInScope(n.targetRole(), "Target role '" + n.targetRole() + "' must not be in current scope");
 
         addTerminatingPair(n.targetRole(), n.sourceRole());
         addOrderingCouple(n.targetRole(), n.sourceRole());
@@ -232,10 +234,10 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // Ending role has to be a stateless role without creator
         checkIsTerminatingPairValid(
                 new TerminatingPair(n.endingRole(), null),
-                "Ending role must be a stateless role without creator: " + n.endingRole());
+                "Ending role '" + n.endingRole() + "' must be a stateless role without creator");
 
         // Ending role has to be free from waiting a response
-        checkIsFree(n.endingRole(), "Ending role must be free from waiting a response: " + n.endingRole());
+        checkIsFree(n.endingRole(), "Ending role '" + n.endingRole() + "' must be free from waiting a response");
 
         removeTerminatingPair(n.endingRole(), null);
 
@@ -253,7 +255,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
                 "Ending role '" + n.endingRole() + "' must be a stateless role created by '" + n.targetRole() + "'");
 
         // Ending role has to be free from waiting a response
-        checkIsFree(n.endingRole(), "Ending role must be free from waiting a response: " + n.endingRole());
+        checkIsFree(n.endingRole(), "Ending role '" + n.endingRole() + "' must be free from waiting a response");
 
         removeTerminatingPair(n.endingRole(), n.targetRole());
         removeOrderingCouplesWithLeft(n.endingRole());
@@ -316,7 +318,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // The procedure and his termination order must be in procedureMap
         if (!procedureMap.containsKey(n.name().id())) {
-            addError(n.name(), "Procedure is not defined: " + n.name().id());
+            addError(n.name(), "Procedure '" + n.name().id() + "' is not defined");
             setProcedureCallContinuation(actualTerminatingPairs);
             return null; // can't procede if procedure ins't defined
         }
@@ -358,7 +360,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
     }
 
     private boolean checkIsDefined(Role role) {
-        return checkIsDefined(role, "Role must be defined: " + role);
+        return checkIsDefined(role, "Role '" + role + "' must be defined");
     }
 
     private boolean checkNotInScope(Role role, String errorMessage) {
@@ -468,31 +470,31 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Actual stateful parameters has to be mentionable
         for (Role r : actualStatefulRoles) {
-            checkIsStateful(r, "Actual stateful parameter must be stateful: " + r);
+            checkIsStateful(r, "Actual stateful parameter '" + r + "' must be stateful");
         }
         // ---------------------
 
         // Actual non terminating parameters has to be mentionable
         for (Role r : actualNonTerminatingRoles) {
             if (!context.isStateful(r) && !context.isNonTerm(r) && !context.isTerm(new TerminatingPair(r, null))) {
-                addError(r, "Invalid actual non-terminating parameter: " + r);
+                addError(r, "Invalid actual non-terminating parameter '" + r + "'");
             }
         }
         // ---------------------
 
         // Actual terminating parameters has to be mentionable
         for (TerminatingPair tp : actualTerminatingPairs) {
-            checkIsTerminatingPairValid(tp, "Invalid actual terminating parameter: " + tp);
+            checkIsTerminatingPairValid(tp, "Invalid actual terminating parameter '" + tp + "'");
         }
         // ---------------------
 
         // actualStatefulRoles can't be duplicated
         // p_i != p_j
-        checkRoleDuplicates(actualStatefulRoles, "Duplicate actual stateful parameter: ");
+        checkRoleDuplicates(actualStatefulRoles, "Duplicate actual stateful parameter");
 
         // actualNonTerminatingRoles can't be duplicated
         // n_i != n_j
-        checkRoleDuplicates(actualNonTerminatingRoles, "Duplicate actual non-terminating parameter: ");
+        checkRoleDuplicates(actualNonTerminatingRoles, "Duplicate actual non-terminating parameter");
         // ---------------------
 
         // left roles in actualTerminatingPairs can't be duplicated
@@ -605,8 +607,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
                 boolean existsInOrder = contextTerminationOrder.contains(createOrderingCouple(f, g));
 
                 if (existsInOrder) {
-                    addError(g, "Procedure call breaks termination order for role: " + g
-                            + ". It should terminate after '" + f + "'");
+                    addError(g, "Procedure call breaks termination order for role '" + g
+                            + "'. It should terminate after '" + f + "'");
                 }
             }
         }
@@ -631,7 +633,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
                     if (!procedureTerminationOrder.contains(expectedOrderingCouple)) {
                         addError(s_i,
-                                "Missing required ordering couple in called procedure for stateless creator: " + s_i);
+                                "Missing required ordering couple in called procedure for stateless creator '" + s_i
+                                        + "'");
                     }
                 }
             }
@@ -653,7 +656,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
                     OrderingCouple expectedOrderingCouple = createOrderingCouple(f_i_p, f_j_p);
 
                     if (!procedureTerminationOrder.contains(expectedOrderingCouple)) {
-                        addError(f_j, "Termination order in context not declared in procedure call for role: " + f_j);
+                        addError(f_j,
+                                "Termination order in context not declared in procedure call for role '" + f_j + "'");
                     }
 
                 }
@@ -712,14 +716,6 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.removeOrderingCouplesWithLeft(r);
     }
 
-    private void addError(Node n) {
-        addError(n.position(), "");
-    }
-
-    private void addError(Position p) {
-        addError(p, "");
-    }
-
     private void addError(Node n, String message) {
         addError(n.position(), message);
     }
@@ -761,7 +757,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
                         Role r_j_act = actListB.get(j);
 
                         if (!r_i_act.equals(r_j_act)) {
-                            addError(r_i_act);
+                            addError(r_i_act,
+                                    "Actual role '" + r_i_act + "' must correspond to actual role '" + r_j_act + "'");
                         }
                     }
                 }
@@ -796,7 +793,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         for (Role r : roles) {
             if (r != null && !seen.add(r)) {
-                addError(r, errorMessagePrefix + r);
+                addError(r, errorMessagePrefix + " '" + r + "'");
                 hasDuplicates = true;
             }
         }
@@ -814,7 +811,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         for (TerminatingPair tp : pairs) {
             Role created = tp.createdRole();
             if (created != null && !seenLeft.add(created)) {
-                addError(tp.position(), "Terminating created role duplicated: " + created);
+                addError(tp.position(), "Terminating created role '" + created + "' duplicated");
                 hasDuplicates = true;
             }
         }
@@ -836,7 +833,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // p_i != n_j
         for (Role r : statefulRoles) {
             if (nonTermSet.contains(r)) {
-                addError(r, "Role " + r + " cannot be both stateful and non-terminating");
+                addError(r, "Role '" + r + "' cannot be both stateful and non-terminating");
             }
         }
 
@@ -844,10 +841,10 @@ public class LocalChecker extends AbstractVisitor<Void> {
         for (TerminatingPair tp : terminatingPairs) {
             Role created = tp.createdRole();
             if (statefulSet.contains(created)) {
-                addError(tp.position(), "Created role " + created + " cannot be a stateful parameter");
+                addError(tp.position(), "Created role '" + created + "' cannot be a stateful parameter");
             }
             if (nonTermSet.contains(created)) {
-                addError(tp.position(), "Created role " + created + " cannot be a non-terminating parameter");
+                addError(tp.position(), "Created role '" + created + "' cannot be a non-terminating parameter");
             }
 
             Role creator = tp.creatorRole();

@@ -129,7 +129,7 @@ public final class TerminationOrderUtils {
             Role creator = tp.creatorRole();
             if (creator != null && !validCreatorRoles.contains(creator)) {
                 errors.add(new IllFormedException(tp.position(),
-                        "Creator role " + creator + " must be stateful, non-terminating, or terminating"));
+                        "Creator role '" + creator + "' must be stateful, non-terminating, or terminating"));
             }
         }
 
@@ -152,16 +152,16 @@ public final class TerminationOrderUtils {
             // For every ordering couple it must exist a terminating pair with the same left
             // role
             if (!createdTerminatingRoles.contains(couple.left())) {
-                errors.add(new IllFormedException(couple.position(), "Left role of ordering couple " + couple.left()
-                        + " must be a terminating role"));
+                errors.add(new IllFormedException(couple.position(), "Left role of ordering couple '" + couple.left()
+                        + "' must be a terminating role"));
             }
 
             // The left role of an ordering couple must be a stateful, non term or left term
             // role
             if (!validCreatorRoles.contains(couple.right())) {
                 errors.add(
-                        new IllFormedException(couple.position(), "Right element of ordering couple " + couple.right()
-                                + " is not a valid role (must be stateful, non-terminating, or terminating)"));
+                        new IllFormedException(couple.position(), "Right element of ordering couple '" + couple.right()
+                                + "' is not a valid role (must be stateful, non-terminating, or terminating)"));
             }
         }
 

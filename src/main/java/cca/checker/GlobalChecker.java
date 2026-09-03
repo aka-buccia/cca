@@ -1,5 +1,9 @@
 package cca.checker;
 
+import cca.checker.model.ComputedTerminationOrder;
+import cca.checker.model.LocalCheckResult;
+import cca.checker.model.ProcedureInfo;
+import cca.checker.model.ProcedureSignature;
 import cca.exceptions.*;
 import cca.ast.procedure.Procedure;
 import cca.ast.Program;
@@ -21,7 +25,7 @@ public class GlobalChecker {
 
         List<IllFormedException> errors = new ArrayList<>();
 
-        Map<String, ProcedureInfo> procedureTable = new HashMap<>();
+        Map<String, cca.checker.model.ProcedureInfo> procedureTable = new HashMap<>();
 
         for (Procedure p : program.procedures()) {
             String name = p.name().id();
@@ -34,13 +38,13 @@ public class GlobalChecker {
                 continue;
             }
 
-            ProcedureSignature signature = new ProcedureSignature(
+            cca.checker.model.ProcedureSignature signature = new ProcedureSignature(
                     p.parameterList(),
                     ComputedTerminationOrder.compute(
                             p.parameterList(),
                             p.terminationOrder()));
 
-            ProcedureInfo info = new ProcedureInfo(signature, p.choreography());
+            cca.checker.model.ProcedureInfo info = new cca.checker.model.ProcedureInfo(signature, p.choreography());
             procedureTable.put(name, info);
         }
 

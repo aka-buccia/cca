@@ -1,4 +1,4 @@
-package cca.checker;
+package cca.checker.model;
 
 import cca.ast.procedure.ProcedureParameterList;
 

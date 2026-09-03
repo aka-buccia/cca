@@ -1,4 +1,4 @@
-package cca.checker;
+package cca.checker.util;
 
 import java.util.List;
 import java.util.Objects;
@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import cca.ast.procedure.OrderingCouple;
+import cca.checker.model.ComputedTerminationOrder;
+import cca.checker.model.TerminatingPair;
 import cca.exceptions.IllFormedException;
 import cca.ast.Role;
 

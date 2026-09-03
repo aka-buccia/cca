@@ -1,4 +1,4 @@
-package cca.checker;
+package cca.checker.util;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import cca.ast.choreography.*;
 import cca.ast.instruction.*;
 import cca.ast.visitors.AbstractVisitor;
+import cca.checker.model.TerminatingPair;
 
 // Visitor for collecting terminated roles inside a choreography
 public class TerminatingRolesCollector extends AbstractVisitor<Set<TerminatingPair>> {

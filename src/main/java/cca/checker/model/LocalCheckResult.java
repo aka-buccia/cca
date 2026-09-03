@@ -1,4 +1,4 @@
-package cca.checker;
+package cca.checker.model;
 
 import java.util.List;
 import java.util.Set;

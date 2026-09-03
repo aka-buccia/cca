@@ -1,9 +1,10 @@
-package cca.checker;
+package cca.checker.model;
 
 import cca.ast.procedure.ProcedureParameterList;
 import cca.ast.procedure.TerminationOrder;
 import cca.ast.procedure.OrderingCouple;
 import cca.ast.Position;
+import cca.checker.util.TerminationOrderUtils;
 
 import java.util.Collections;
 import java.util.HashSet;

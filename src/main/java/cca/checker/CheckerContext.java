@@ -10,13 +10,16 @@ import java.util.stream.Stream;
 
 import cca.ast.Role;
 import cca.ast.procedure.*;
+import cca.checker.model.ProcedureSignature;
+import cca.checker.model.TerminatingPair;
+import cca.checker.util.TerminationOrderUtils;
 
 public class CheckerContext {
 
     private Set<Role> statefulRoles;
     private Set<Role> statelessRoles;
     private Set<Role> nonTerminatingRoles;
-    private List<TerminatingPair> terminatingPairs;
+    private List<cca.checker.model.TerminatingPair> terminatingPairs;
     private Set<OrderingCouple> terminationOrder;
     private Set<Role> mentionedRoles;
 
@@ -33,7 +36,7 @@ public class CheckerContext {
         ProcedureParameterList p = procedureSignature.parameterList();
 
         this.terminatingPairs = p.terminatingParameters().stream()
-                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
+                .map(tp -> new cca.checker.model.TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         this.statefulRoles = p.statefulParameters().stream()
@@ -78,7 +81,7 @@ public class CheckerContext {
         return nonTerminatingRoles;
     }
 
-    public List<TerminatingPair> getTerminatingPairs() {
+    public List<cca.checker.model.TerminatingPair> getTerminatingPairs() {
         return terminatingPairs;
     }
 
@@ -96,13 +99,13 @@ public class CheckerContext {
         this.nonTerminatingRoles = nonTerminatingRoles;
     }
 
-    public void setTerminatingPairs(List<TerminatingPair> terminatingPairs) {
+    public void setTerminatingPairs(List<cca.checker.model.TerminatingPair> terminatingPairs) {
         this.terminatingPairs = terminatingPairs;
     }
 
     public void setTerminatingPairsFromParameters(List<TerminatingParameter> terminatingParameters) {
         this.terminatingPairs = terminatingParameters.stream()
-                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
+                .map(tp -> new cca.checker.model.TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
@@ -113,13 +116,13 @@ public class CheckerContext {
     // Helpers
 
     public void addTerminatingPair(Role created, Role creator) {
-        TerminatingPair t = new TerminatingPair(created, creator);
+        cca.checker.model.TerminatingPair t = new cca.checker.model.TerminatingPair(created, creator);
 
         terminatingPairs.add(t);
     }
 
     public void removeTerminatingPair(Role created, Role creator) {
-        TerminatingPair t = new TerminatingPair(created, creator);
+        cca.checker.model.TerminatingPair t = new cca.checker.model.TerminatingPair(created, creator);
 
         terminatingPairs.remove(t);
     }

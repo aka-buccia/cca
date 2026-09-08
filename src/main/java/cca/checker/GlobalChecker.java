@@ -25,7 +25,7 @@ public class GlobalChecker {
 
         List<IllFormedException> errors = new ArrayList<>();
 
-        Map<String, cca.checker.model.ProcedureInfo> procedureTable = new HashMap<>();
+        Map<String, ProcedureInfo> procedureTable = new HashMap<>();
 
         for (Procedure p : program.procedures()) {
             String name = p.name().id();
@@ -38,13 +38,13 @@ public class GlobalChecker {
                 continue;
             }
 
-            cca.checker.model.ProcedureSignature signature = new ProcedureSignature(
+            ProcedureSignature signature = new ProcedureSignature(
                     p.parameterList(),
                     ComputedTerminationOrder.compute(
                             p.parameterList(),
                             p.terminationOrder()));
 
-            cca.checker.model.ProcedureInfo info = new cca.checker.model.ProcedureInfo(signature, p.choreography());
+            ProcedureInfo info = new ProcedureInfo(signature, p.choreography());
             procedureTable.put(name, info);
         }
 

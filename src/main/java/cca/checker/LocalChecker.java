@@ -25,7 +25,7 @@ import cca.exceptions.IllFormedException;
 
 public class LocalChecker extends AbstractVisitor<Void> {
 
-    private Map<String, cca.checker.model.ProcedureInfo> procedureMap;
+    private Map<String, ProcedureInfo> procedureMap;
     private CheckerContext context;
     private List<IllFormedException> errors;
     private Set<String> procedureCalled;
@@ -33,14 +33,14 @@ public class LocalChecker extends AbstractVisitor<Void> {
     public LocalChecker() {
     };
 
-    public LocalChecker(Map<String, cca.checker.model.ProcedureInfo> procedureMap, CheckerContext context) {
+    public LocalChecker(Map<String, ProcedureInfo> procedureMap, CheckerContext context) {
         this.procedureMap = procedureMap;
         this.context = context;
         this.errors = new ArrayList<>();
         this.procedureCalled = new HashSet<>();
     }
 
-    public cca.checker.model.LocalCheckResult check(Map<String, cca.checker.model.ProcedureInfo> procedureMap, ProcedureInfo procedureInfo) {
+    public LocalCheckResult check(Map<String, ProcedureInfo> procedureMap, ProcedureInfo procedureInfo) {
 
         this.procedureMap = procedureMap;
         this.errors = new ArrayList<>();
@@ -48,7 +48,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         preVisitCheck(procedureInfo.signature());
         if (this.errors.size() > 0)
-            return new cca.checker.model.LocalCheckResult(errors, procedureCalled);
+            return new LocalCheckResult(errors, procedureCalled);
 
         this.context = new CheckerContext();
         this.context.init(procedureInfo.signature());
@@ -56,27 +56,27 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         postVisitCheck(procedureInfo.signature());
 
-        return new cca.checker.model.LocalCheckResult(errors, procedureCalled);
+        return new LocalCheckResult(errors, procedureCalled);
     }
 
-    public cca.checker.model.LocalCheckResult checkBranch(Choreography choreography,
-                                                          CheckerContext context) {
+    public LocalCheckResult checkBranch(Choreography choreography,
+            CheckerContext context) {
 
         this.context = context;
 
         this.errors = new ArrayList<>();
         visit(choreography);
 
-        return new cca.checker.model.LocalCheckResult(errors, procedureCalled);
+        return new LocalCheckResult(errors, procedureCalled);
     }
 
-    public void preVisitCheck(cca.checker.model.ProcedureSignature signature) {
+    public void preVisitCheck(ProcedureSignature signature) {
         ProcedureParameterList params = signature.parameterList();
         Set<OrderingCouple> terminationOrder = signature.terminationOrder().getOrderingCouples();
 
         List<Role> statefulRoles = extractStatefulRoles(params);
         List<Role> nonTerminatingRoles = extractNonTerminatingRoles(params);
-        List<cca.checker.model.TerminatingPair> terminatingPairs = extractTerminatingPairs(params);
+        List<TerminatingPair> terminatingPairs = extractTerminatingPairs(params);
 
         // all parameters must be distinct (with some exceptions for terminating pairs)
         checkRoleDuplicates(statefulRoles, "Stateful role duplicated: ");
@@ -130,11 +130,11 @@ public class LocalChecker extends AbstractVisitor<Void> {
     @Override
     public Void visit(Terminated n) {
 
-        List<cca.checker.model.TerminatingPair> terminatingPairs = context.getTerminatingPairs();
+        List<TerminatingPair> terminatingPairs = context.getTerminatingPairs();
 
         // All terminating roles has to terminate before procedure termination
         if (!terminatingPairs.isEmpty()) {
-            for (cca.checker.model.TerminatingPair missingPair : terminatingPairs) {
+            for (TerminatingPair missingPair : terminatingPairs) {
                 addError(missingPair.createdRole().position(),
                         "Terminating created role '" + missingPair.createdRole()
                                 + "' must terminate before procedure termination");
@@ -239,7 +239,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Ending role has to be a stateless role without creator
         checkIsTerminatingPairValid(
-                new cca.checker.model.TerminatingPair(n.endingRole(), null),
+                new TerminatingPair(n.endingRole(), null),
                 "Ending role '" + n.endingRole() + "' must be a stateless role without creator");
 
         // Ending role has to be free from waiting a response
@@ -257,7 +257,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Ending role has to be a stateless role with a creator
         checkIsTerminatingPairValid(
-                new cca.checker.model.TerminatingPair(n.endingRole(), n.targetRole()),
+                new TerminatingPair(n.endingRole(), n.targetRole()),
                 "Ending role '" + n.endingRole() + "' must be a stateless role created by '" + n.targetRole() + "'");
 
         // Ending role has to be free from waiting a response
@@ -276,16 +276,16 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // Guard role has to be defined
         checkIsDefined(n.targetRole());
 
-        cca.checker.util.TerminatingRolesCollector collector = new TerminatingRolesCollector();
-        Set<cca.checker.model.TerminatingPair> ifTerminated = collector.visit(n.ifBranch());
-        Set<cca.checker.model.TerminatingPair> elseTerminated = collector.visit(n.elseBranch());
+        TerminatingRolesCollector collector = new TerminatingRolesCollector();
+        Set<TerminatingPair> ifTerminated = collector.visit(n.ifBranch());
+        Set<TerminatingPair> elseTerminated = collector.visit(n.elseBranch());
 
         // Check that branches terminate the same roles
         checkBranchTerminatesEqually(n, ifTerminated, elseTerminated);
 
         // Define D, the set of terminating pairs that haven't terminated in either
         // branch
-        List<cca.checker.model.TerminatingPair> D = new ArrayList<>(context.getTerminatingPairs());
+        List<TerminatingPair> D = new ArrayList<>(context.getTerminatingPairs());
         D.removeIf(tp -> ifTerminated.contains(tp) || elseTerminated.contains(tp));
         CheckerContext branchContext = createBranchContext(D);
 
@@ -294,8 +294,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
         CheckerContext elseContext = branchContext.copy();
         LocalChecker checker = new LocalChecker(procedureMap, branchContext);
 
-        cca.checker.model.LocalCheckResult ifBranchResponse = checker.checkBranch(n.ifBranch(), ifContext);
-        cca.checker.model.LocalCheckResult elseBranchResponse = checker.checkBranch(n.elseBranch(), elseContext);
+        LocalCheckResult ifBranchResponse = checker.checkBranch(n.ifBranch(), ifContext);
+        LocalCheckResult elseBranchResponse = checker.checkBranch(n.elseBranch(), elseContext);
 
         // Collect errors, procedures called and mentioned roles
         gatherBranchResult(ifBranchResponse, ifContext);
@@ -318,7 +318,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // iterate non terminating roles with n
         List<Role> actualNonTerminatingRoles = extractNonTerminatingRoles(n.parameterList());
         // iterate terminating pairs with (f, s)
-        List<cca.checker.model.TerminatingPair> actualTerminatingPairs = extractTerminatingPairs(n.parameterList());
+        List<TerminatingPair> actualTerminatingPairs = extractTerminatingPairs(n.parameterList());
 
         checkActualParameters(actualStatefulRoles, actualNonTerminatingRoles, actualTerminatingPairs);
 
@@ -334,7 +334,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         ProcedureParameterList procedureCalledParameters = procedureMap.get(n.name().id()).signature().parameterList();
         List<Role> formalStatefulRoles = extractStatefulRoles(procedureCalledParameters);
         List<Role> formalNonTerminatingRoles = extractNonTerminatingRoles(procedureCalledParameters);
-        List<cca.checker.model.TerminatingPair> formalTerminatingPairs = extractTerminatingPairs(procedureCalledParameters);
+        List<TerminatingPair> formalTerminatingPairs = extractTerminatingPairs(procedureCalledParameters);
 
         checkFormalActualParamMatch(n.parameterList(), actualStatefulRoles, formalStatefulRoles,
                 actualNonTerminatingRoles, formalNonTerminatingRoles, actualTerminatingPairs, formalTerminatingPairs);
@@ -377,7 +377,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         return true;
     }
 
-    private boolean checkIsTerminatingPairValid(cca.checker.model.TerminatingPair tp, String errorMessage) {
+    private boolean checkIsTerminatingPairValid(TerminatingPair tp, String errorMessage) {
         if (!context.isTerm(tp)) {
             addError(tp.position(), errorMessage);
             return false;
@@ -395,16 +395,16 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     private void checkBranchTerminatesEqually(
             Conditional n,
-            Set<cca.checker.model.TerminatingPair> ifTerminated,
-            Set<cca.checker.model.TerminatingPair> elseTerminated) {
+            Set<TerminatingPair> ifTerminated,
+            Set<TerminatingPair> elseTerminated) {
 
-        for (cca.checker.model.TerminatingPair tp : ifTerminated) {
+        for (TerminatingPair tp : ifTerminated) {
             if (!elseTerminated.contains(tp)) {
                 addError(n, "Terminating role '" + tp.createdRole()
                         + "' terminates in 'if' branch but not in 'else' branch");
             }
         }
-        for (cca.checker.model.TerminatingPair tp : elseTerminated) {
+        for (TerminatingPair tp : elseTerminated) {
             if (!ifTerminated.contains(tp)) {
                 addError(n, "Terminating role '" + tp.createdRole()
                         + "' terminates in 'else' branch but not in 'if' branch");
@@ -412,23 +412,23 @@ public class LocalChecker extends AbstractVisitor<Void> {
         }
     }
 
-    private CheckerContext createBranchContext(List<cca.checker.model.TerminatingPair> D) {
+    private CheckerContext createBranchContext(List<TerminatingPair> D) {
         CheckerContext branchContext = this.context.copy();
 
         // Add D to nonterminating roles
         Set<Role> branchNonTerminating = new HashSet<>(context.getNonTerminatingRoles());
-        for (cca.checker.model.TerminatingPair tp : D) {
+        for (TerminatingPair tp : D) {
             branchNonTerminating.add(tp.createdRole());
         }
         branchContext.setNonTerminatingRoles(branchNonTerminating);
 
         // Remove D from terminating roles
-        List<cca.checker.model.TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
+        List<TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
         branchTerminating.removeAll(D);
         branchContext.setTerminatingPairs(branchTerminating);
 
         // Remove ordering couples with left role in D
-        for (cca.checker.model.TerminatingPair tp : D) {
+        for (TerminatingPair tp : D) {
             branchContext.removeOrderingCouplesWithLeft(tp.createdRole());
         }
 
@@ -446,15 +446,15 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRolesAsMentioned(branchContext.getMentionedRoles());
     }
 
-    private void setConditionalContinuation(List<cca.checker.model.TerminatingPair> D, CheckerContext ifContext,
-                                            CheckerContext elseContext) {
+    private void setConditionalContinuation(List<TerminatingPair> D, CheckerContext ifContext,
+            CheckerContext elseContext) {
 
         // Remove ordering couples with roles that terminated inside branches (term \ D)
-        List<cca.checker.model.TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
+        List<TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
         branchTerminating.removeAll(D);
 
         // Remove ordering couples with term\D roles
-        for (cca.checker.model.TerminatingPair tp : branchTerminating) {
+        for (TerminatingPair tp : branchTerminating) {
             this.context.removeOrderingCouplesWithLeft(tp.createdRole());
         }
 
@@ -472,7 +472,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
     private void checkActualParameters(
             List<Role> actualStatefulRoles,
             List<Role> actualNonTerminatingRoles,
-            List<cca.checker.model.TerminatingPair> actualTerminatingPairs) {
+            List<TerminatingPair> actualTerminatingPairs) {
 
         // Actual stateful parameters has to be mentionable
         for (Role r : actualStatefulRoles) {
@@ -482,14 +482,14 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Actual non terminating parameters has to be mentionable
         for (Role r : actualNonTerminatingRoles) {
-            if (!context.isStateful(r) && !context.isNonTerm(r) && !context.isTerm(new cca.checker.model.TerminatingPair(r, null))) {
+            if (!context.isStateful(r) && !context.isNonTerm(r) && !context.isTerm(new TerminatingPair(r, null))) {
                 addError(r, "Invalid actual non-terminating parameter '" + r + "'");
             }
         }
         // ---------------------
 
         // Actual terminating parameters has to be mentionable
-        for (cca.checker.model.TerminatingPair tp : actualTerminatingPairs) {
+        for (TerminatingPair tp : actualTerminatingPairs) {
             checkIsTerminatingPairValid(tp, "Invalid actual terminating parameter '" + tp + "'");
         }
         // ---------------------
@@ -517,7 +517,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
             ProcedureParameterList actualParamList,
             List<Role> actualStatefulRoles, List<Role> formalStatefulRoles,
             List<Role> actualNonTerminatingRoles, List<Role> formalNonTerminatingRoles,
-            List<cca.checker.model.TerminatingPair> actualTerminatingPairs, List<cca.checker.model.TerminatingPair> formalTerminatingPairs) {
+            List<TerminatingPair> actualTerminatingPairs, List<TerminatingPair> formalTerminatingPairs) {
 
         // n. of actual and formal stateful params has to be the same
         if (actualStatefulRoles.size() != formalStatefulRoles.size()) {
@@ -539,10 +539,10 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // All formal term params has to match the corresponding formal param
         for (int index = 0; index < actualTerminatingPairs.size(); index++) {
-            cca.checker.model.TerminatingPair actualTp = actualTerminatingPairs.get(index);
+            TerminatingPair actualTp = actualTerminatingPairs.get(index);
 
             if (index < formalTerminatingPairs.size()) {
-                cca.checker.model.TerminatingPair expectedTp = formalTerminatingPairs.get(index);
+                TerminatingPair expectedTp = formalTerminatingPairs.get(index);
 
                 boolean actualRightIsNull = actualTp.creatorRole() == null;
                 boolean expectedRightIsNull = expectedTp.creatorRole() == null;
@@ -558,12 +558,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // When two formal params are the same, the corresponding actual param must be
         // the same
         List<Role> actualCreatorRoles = actualTerminatingPairs.stream()
-                .map(cca.checker.model.TerminatingPair::creatorRole)
+                .map(TerminatingPair::creatorRole)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         List<Role> formalCreatorRoles = formalTerminatingPairs.stream()
-                .map(cca.checker.model.TerminatingPair::creatorRole)
+                .map(TerminatingPair::creatorRole)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
@@ -590,19 +590,19 @@ public class LocalChecker extends AbstractVisitor<Void> {
     }
 
     private void checkTerminationOrderPreservation(ProcedureCall n,
-            List<cca.checker.model.TerminatingPair> actualTerminatingPairs,
-            List<cca.checker.model.TerminatingPair> formalTerminatingPairs) {
+            List<TerminatingPair> actualTerminatingPairs,
+            List<TerminatingPair> formalTerminatingPairs) {
 
         // Check that procedure call doesn't broke termination order
-        List<cca.checker.model.TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
+        List<TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
         stillTerminatingPairs.removeAll(actualTerminatingPairs);
 
         Set<Role> stillTermLeftRoles = stillTerminatingPairs.stream()
-                .map(cca.checker.model.TerminatingPair::createdRole)
+                .map(TerminatingPair::createdRole)
                 .collect(Collectors.toSet());
 
         Set<Role> actualTermLeftRoles = actualTerminatingPairs.stream()
-                .map(cca.checker.model.TerminatingPair::createdRole)
+                .map(TerminatingPair::createdRole)
                 .collect(Collectors.toSet());
 
         Set<OrderingCouple> contextTerminationOrder = context.getTerminationOrder();
@@ -625,11 +625,11 @@ public class LocalChecker extends AbstractVisitor<Void> {
         Set<OrderingCouple> procedureTerminationOrder = procedureMap.get(n.name().id())
                 .signature().terminationOrder().getOrderingCouples();
         for (int i = 0; i < actualTerminatingPairs.size(); i++) {
-            cca.checker.model.TerminatingPair pairI = actualTerminatingPairs.get(i);
+            TerminatingPair pairI = actualTerminatingPairs.get(i);
             Role s_i = pairI.creatorRole();
 
             for (int j = 0; j < actualTerminatingPairs.size(); j++) {
-                cca.checker.model.TerminatingPair pairJ = actualTerminatingPairs.get(j);
+                TerminatingPair pairJ = actualTerminatingPairs.get(j);
                 Role f_j = pairJ.createdRole();
 
                 if (s_i != null && s_i.equals(f_j)) {
@@ -672,14 +672,14 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // ---------------------
     }
 
-    private void setProcedureCallContinuation(List<cca.checker.model.TerminatingPair> actualTerminatingPairs) {
-        List<cca.checker.model.TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
+    private void setProcedureCallContinuation(List<TerminatingPair> actualTerminatingPairs) {
+        List<TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
         stillTerminatingPairs.removeAll(actualTerminatingPairs);
 
         context.setTerminatingPairs(stillTerminatingPairs);
 
         // Remove ordering couples with roles terminated inside procedure
-        for (cca.checker.model.TerminatingPair tp : actualTerminatingPairs) {
+        for (TerminatingPair tp : actualTerminatingPairs) {
             this.context.removeOrderingCouplesWithLeft(tp.createdRole());
         }
     }
@@ -696,9 +696,9 @@ public class LocalChecker extends AbstractVisitor<Void> {
                 .collect(Collectors.toList());
     }
 
-    private List<cca.checker.model.TerminatingPair> extractTerminatingPairs(ProcedureParameterList list) {
+    private List<TerminatingPair> extractTerminatingPairs(ProcedureParameterList list) {
         return list.terminatingParameters().stream()
-                .map(tp -> new cca.checker.model.TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
+                .map(tp -> new TerminatingPair(tp.createdRole(), tp.creatorRole(), tp.position()))
                 .collect(Collectors.toList());
     }
 
@@ -810,11 +810,11 @@ public class LocalChecker extends AbstractVisitor<Void> {
      * Check if there are duplicate roles on the left side (createdRole) of the
      * TerminatingPair.
      */
-    private boolean checkTerminatingDuplicates(List<cca.checker.model.TerminatingPair> pairs) {
+    private boolean checkTerminatingDuplicates(List<TerminatingPair> pairs) {
         Set<Role> seenLeft = new HashSet<>();
         boolean hasDuplicates = false;
 
-        for (cca.checker.model.TerminatingPair tp : pairs) {
+        for (TerminatingPair tp : pairs) {
             Role created = tp.createdRole();
             if (created != null && !seenLeft.add(created)) {
                 addError(tp.position(), "Terminating created role '" + created + "' duplicated");
@@ -831,7 +831,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
     private void checkCrossParameterDisjointness(
             List<Role> statefulRoles,
             List<Role> nonTerminatingRoles,
-            List<cca.checker.model.TerminatingPair> terminatingPairs) {
+            List<TerminatingPair> terminatingPairs) {
 
         Set<Role> statefulSet = new HashSet<>(statefulRoles);
         Set<Role> nonTermSet = new HashSet<>(nonTerminatingRoles);

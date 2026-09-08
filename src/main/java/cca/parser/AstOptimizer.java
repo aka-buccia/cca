@@ -83,7 +83,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     @Override
     public Choreography visitChoreography(FaaSChalCoreParser.ChoreographyContext ctx) {
 
-        List<Instruction> instructions = ctx.interaction().stream().map(this::visitInteraction)
+        List<Instruction> instructions = ctx.instruction().stream().map(this::visitInstruction)
                 .collect(Collectors.toList());
         Terminated termination = isPresent(ctx.terminated()) ? visitTerminated(ctx.terminated())
                 : new Terminated.TerminatedOmitted(getPosition(ctx.getStop()));
@@ -124,7 +124,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     @Override
-    public Instruction visitInteraction(FaaSChalCoreParser.InteractionContext ctx) {
+    public Instruction visitInstruction(FaaSChalCoreParser.InstructionContext ctx) {
 
         if (isPresent(ctx.communication())) {
             return visitCommunication(ctx.communication());

@@ -167,6 +167,17 @@ public final class TerminationOrderUtils {
             }
         }
 
+        errors.addAll(checkNoInverseCouple(terminationOrder, terminatingPairs));
+
+        return errors;
+    }
+
+    public static List<IllFormedException> checkNoInverseCouple(
+            Set<OrderingCouple> terminationOrder,
+            List<TerminatingPair> terminatingPairs) {
+
+        List<IllFormedException> errors = new ArrayList<>();
+
         // For every terminating pair (f, n) with n != 0, it cannot exist the ordering
         // couple (n, f) in the termination order
         for (TerminatingPair tp : terminatingPairs) {

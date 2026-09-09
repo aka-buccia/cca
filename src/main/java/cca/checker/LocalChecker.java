@@ -92,21 +92,13 @@ public class LocalChecker extends AbstractVisitor<Void> {
             addError(signature.terminationOrder().position(), "Termination order must be a strict partial order");
         }
 
-        // this.errors.addAll(
-        // TerminationOrderUtils.validateTerminationOrderInvariants(
-        // terminationOrder, statefulRoles, nonTerminatingRoles, terminatingPairs));
+        this.errors.addAll(
+                TerminationOrderUtils.checkNoInverseCouple(terminationOrder, terminatingPairs));
 
     }
 
     public void postVisitCheck(ProcedureSignature signature) {
         Set<Role> finalMentionedRoles = context.getMentionedRoles();
-
-        // body of the procedure must contain at least two roles
-        if (finalMentionedRoles.size() < 2) {
-            addError(signature.parameterList(),
-                    "Body of the procedure must contain at least two roles, otherwise it can be expressed using a local function");
-        }
-
         Set<Role> formalRoles = tranformProcedureParameterInRoleSet(signature.parameterList());
 
         // Procedure body must mention all formal parameters

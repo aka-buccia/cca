@@ -16,9 +16,7 @@ import cca.ast.Position;
 import cca.ast.Program;
 import cca.ast.visitors.PrettyPrinterVisitor;
 import cca.checker.GlobalChecker;
-import cca.exceptions.AstPositionedException;
-import cca.exceptions.CompoundException;
-import cca.exceptions.FaaSChalCoreException;
+import cca.exceptions.*;
 import cca.parser.Parser;
 import cca.utils.VerbosityLevel;
 import picocli.CommandLine;
@@ -95,9 +93,10 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
         public Integer call() {
             List<Path> sources = sourcePathOption.getPaths();
             GlobalChecker globalChecker = new GlobalChecker();
+            boolean globalSuccess = true;
 
-            try {
-                for (Path source : sources) {
+            for (Path source : sources) {
+                try {
                     // Parse AST
                     Program p = Parser.parseSourceFile(source.toFile());
 
@@ -105,15 +104,36 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
                     globalChecker.check(p);
 
                     if (verbosityOptions.verbosity().compareTo(VerbosityLevel.INFO) >= 0) {
-                        System.out.println("Checking " + source + ": OK");
+                        System.out.println("Checking " + source + ": WELL-FORMED");
                     }
+
+                } catch (CompoundException e) {
+                    // split errors and warnings
+                    boolean hasErrors = e.getCauses().stream()
+                            .anyMatch(cause -> !(cause instanceof WarningException));
+
+                    printNiceErrorMessage(e, verbosityOptions.verbosity());
+
+                    if (hasErrors) {
+                        globalSuccess = false;
+                        System.err.println("Checking " + source + ": ILL-FORMED");
+                    } else {
+                        if (verbosityOptions.verbosity().compareTo(VerbosityLevel.INFO) >= 0) {
+                            System.out.println("Checking " + source + ": WELL-FORMED (with warnings)");
+                        }
+                    }
+
+                } catch (Exception e) {
+                    globalSuccess = false;
+                    printNiceErrorMessage(e, verbosityOptions.verbosity());
+                    System.err.println("check failed");
                 }
-            } catch (Exception e) {
-                printNiceErrorMessage(e, verbosityOptions.verbosity());
+            }
+
+            if (!globalSuccess) {
                 System.err.println("check failed");
                 return 1;
             }
-
             return 0;
         }
     }
@@ -224,21 +244,26 @@ abstract class FaaSChalCoreCommand {
     protected static void printNiceErrorMessage(
             Throwable e, VerbosityLevel verbosity) {
 
-        if (e instanceof AstPositionedException se) {
-            Position p = se.getPosition();
-            System.err.print(String.format("Error at %s: %s.\n%s", p, se.getMessage(), formattedSnippet(p)));
-            if (verbosity == VerbosityLevel.DEBUG) {
-                e.printStackTrace();
-            }
-        } else if (e instanceof CompoundException) {
-            for (FaaSChalCoreException f : ((CompoundException) e).getCauses()) {
+        if (e instanceof CompoundException compound) {
+            for (FaaSChalCoreException f : compound.getCauses()) {
                 printNiceErrorMessage(f, verbosity);
             }
+            return;
+        }
+
+        boolean isWarning = e instanceof WarningException;
+        String label = isWarning ? "Warning" : "Error";
+        String message = e.getMessage();
+
+        if (e instanceof AstPositioned positioned) {
+            Position p = positioned.getPosition();
+            System.err.print(String.format("%s at %s: %s.\n%s", label, p, message, formattedSnippet(p)));
         } else {
-            System.err.println("Error:" + e.getMessage());
-            if (verbosity == VerbosityLevel.DEBUG) {
-                e.printStackTrace();
-            }
+            System.err.println(label + ": " + message);
+        }
+
+        if (verbosity == VerbosityLevel.DEBUG) {
+            e.printStackTrace();
         }
     }
 

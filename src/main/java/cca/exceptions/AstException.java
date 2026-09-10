@@ -2,11 +2,11 @@ package cca.exceptions;
 
 import cca.ast.Position;
 
-public class AstPositionedException extends FaaSChalCoreException {
+public class AstException extends FaaSChalCoreException implements AstPositioned {
 
     private final Position position;
 
-    public AstPositionedException(Position position, String message) {
+    public AstException(Position position, String message) {
         super(message);
         this.position = position;
     }

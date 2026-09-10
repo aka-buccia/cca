@@ -8,14 +8,12 @@ import cca.exceptions.*;
 import cca.ast.procedure.Procedure;
 import cca.ast.Program;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GlobalChecker {
 
@@ -23,7 +21,7 @@ public class GlobalChecker {
 
     public void check(Program program) {
 
-        List<IllFormedException> errors = new ArrayList<>();
+        List<FaaSChalCoreException> errors = new CopyOnWriteArrayList<>();
 
         Map<String, ProcedureInfo> procedureTable = new HashMap<>();
 
@@ -56,33 +54,28 @@ public class GlobalChecker {
             throw new CompoundException(errors);
         }
 
-        Set<String> visited = new HashSet<>();
-        Queue<String> reachableProcedures = new LinkedList<>();
+        Set<String> calledProcedures = ConcurrentHashMap.newKeySet();
+        calledProcedures.add(ENTRY_POINT_PROCEDURE_NAME);
 
-        reachableProcedures.add(ENTRY_POINT_PROCEDURE_NAME);
-        visited.add("main");
+        // Check procedures in parallel
+        procedureTable.entrySet().parallelStream().forEach(entry -> {
+            ProcedureInfo procInfo = entry.getValue();
 
-        LocalChecker localChecker = new LocalChecker();
+            LocalChecker localChecker = new LocalChecker();
+            LocalCheckResult result = localChecker.check(procedureTable, procInfo);
 
-        while (!reachableProcedures.isEmpty()) {
-            String currentProcName = reachableProcedures.poll();
-            ProcedureInfo currentProc = procedureTable.get(currentProcName);
-
-            if (currentProc == null) {
-                continue;
-            }
-
-            LocalCheckResult result = localChecker.check(procedureTable, currentProc);
             errors.addAll(result.getErrors());
+            calledProcedures.addAll(result.getDiscoveredCalls());
+        });
 
-            // reachability
-            for (String calledProc : result.getDiscoveredCalls()) {
-                if (!procedureTable.containsKey(calledProc)) {
-                    continue;
-                }
-                if (visited.add(calledProc)) {
-                    reachableProcedures.add(calledProc);
-                }
+        // reachability warnings
+        for (Procedure p : program.procedures()) {
+            String procName = p.name().id();
+
+            if (!calledProcedures.contains(procName)) {
+                errors.add(new UncalledProcedureWarning(
+                        p.name().position(),
+                        procName));
             }
         }
 

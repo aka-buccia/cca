@@ -50,7 +50,13 @@ public class CheckerContext {
         this.statelessRoles = Stream.concat(
                 nonTerminatingRoles.stream(),
                 p.terminatingParameters().stream()
-                        .flatMap(tp -> Stream.of(tp.createdRole(), tp.creatorRole())))
+                        .flatMap(tp -> {
+                            Stream<Role> created = Stream.of(tp.createdRole());
+                            Stream<Role> creator = statefulRoles.contains(tp.creatorRole())
+                                    ? Stream.empty()
+                                    : Stream.of(tp.creatorRole());
+                            return Stream.concat(created, creator);
+                        }))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         this.terminationOrder = new HashSet<>(procedureSignature.terminationOrder().getOrderingCouples());

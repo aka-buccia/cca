@@ -105,16 +105,15 @@ public class PrettyPrinterVisitor extends AbstractVisitor<String> {
     public String visit(TerminatingParameter n) {
         StringBuilder sb = new StringBuilder();
 
+        if (n.creatorRole() == null) {
+            sb.append(visit(n.createdRole()));
+            return sb.toString();
+        }
+
         sb.append("[");
         sb.append(visit(n.createdRole()));
         sb.append(SPACED_COMMA);
-
-        if (n.creatorRole() == null) {
-            sb.append("0");
-        } else {
-            sb.append(visit(n.creatorRole()));
-        }
-
+        sb.append(visit(n.creatorRole()));
         sb.append("]");
 
         return sb.toString();

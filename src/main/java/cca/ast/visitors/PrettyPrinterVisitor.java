@@ -16,7 +16,7 @@ import cca.ast.expression.*;
 import cca.ast.instruction.*;
 import cca.ast.procedure.*;
 
-public class PrettyPrinterVisitor extends AbstractVisitor<String> {
+public class PrettyPrinterVisitor implements VisitorInterface<String> {
 
     private static final String DEF = "def";
     private static final String ARROW = "->";

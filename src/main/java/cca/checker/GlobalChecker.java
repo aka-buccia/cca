@@ -46,16 +46,16 @@ public class GlobalChecker {
             procedureTable.put(name, info);
         }
 
-        // If entry point procedure is missing, terminate
+        Set<String> calledProcedures = ConcurrentHashMap.newKeySet();
+        calledProcedures.add(ENTRY_POINT_PROCEDURE_NAME);
+
+        // Check if entry point procedure is defined
         if (!procedureTable.containsKey(ENTRY_POINT_PROCEDURE_NAME)) {
             errors.add(new IllFormedException(
                     program.position(),
                     "Procedure \"" + ENTRY_POINT_PROCEDURE_NAME + "\" is not defined"));
-            throw new CompoundException(errors);
+            calledProcedures.remove(ENTRY_POINT_PROCEDURE_NAME);
         }
-
-        Set<String> calledProcedures = ConcurrentHashMap.newKeySet();
-        calledProcedures.add(ENTRY_POINT_PROCEDURE_NAME);
 
         // Check procedures in parallel
         procedureTable.entrySet().parallelStream().forEach(entry -> {

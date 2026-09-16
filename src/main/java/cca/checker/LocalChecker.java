@@ -130,7 +130,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
             for (TerminatingPair missingPair : terminatingPairs) {
                 addError(n.position(),
                         "Terminating created role '" + missingPair.createdRole()
-                                + "' must terminate before procedure termination");
+                                + "' must terminate before choreography termination");
             }
         }
 

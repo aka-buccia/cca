@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import cca.ast.Node;
 import cca.ast.Position;
@@ -275,10 +276,16 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // Check that branches terminate the same roles
         checkBranchTerminatesEqually(n, ifTerminated, elseTerminated);
 
+        // Check that the branch terminations doesn't break termination order
+        List<TerminatingPair> unionTerminated = Stream.concat(ifTerminated.stream(), elseTerminated.stream())
+                .distinct()
+                .toList();
+        checkTerminationPrecedence(unionTerminated, "Conditional");
+
         // Define D, the set of terminating pairs that haven't terminated in either
         // branch
         List<TerminatingPair> D = new ArrayList<>(context.getTerminatingPairs());
-        D.removeIf(tp -> ifTerminated.contains(tp) || elseTerminated.contains(tp));
+        D.removeAll(unionTerminated);
         CheckerContext branchContext = createBranchContext(D);
 
         // Visit if and else branches
@@ -294,7 +301,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         gatherBranchResult(elseBranchResponse, elseContext);
 
         // Set context for continuation
-        setConditionalContinuation(D, ifContext, elseContext);
+        setConditionalContinuation(unionTerminated, D, ifContext, elseContext);
 
         return null;
     }
@@ -438,15 +445,12 @@ public class LocalChecker extends AbstractVisitor<Void> {
         context.markRolesAsMentioned(branchContext.getMentionedRoles());
     }
 
-    private void setConditionalContinuation(List<TerminatingPair> D, CheckerContext ifContext,
+    private void setConditionalContinuation(List<TerminatingPair> unionTerminated, List<TerminatingPair> D,
+            CheckerContext ifContext,
             CheckerContext elseContext) {
 
-        // Remove ordering couples with roles that terminated inside branches (term \ D)
-        List<TerminatingPair> branchTerminating = new ArrayList<>(context.getTerminatingPairs());
-        branchTerminating.removeAll(D);
-
-        // Remove ordering couples with term\D roles
-        for (TerminatingPair tp : branchTerminating) {
+        // Remove ordering couples with roles that terminated inside branches
+        for (TerminatingPair tp : unionTerminated) {
             this.context.removeOrderingCouplesWithLeft(tp.createdRole());
         }
 
@@ -581,35 +585,39 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
     }
 
+    private void checkTerminationPrecedence(List<TerminatingPair> terminatingNow, String instructionName) {
+        List<TerminatingPair> remainingActive = new ArrayList<>(context.getTerminatingPairs());
+        remainingActive.removeAll(terminatingNow);
+
+        Set<Role> rolesRemainingActive = remainingActive.stream()
+                .map(TerminatingPair::createdRole)
+                .collect(Collectors.toSet());
+        Set<Role> rolesTerminatingNow = terminatingNow.stream()
+                .map(TerminatingPair::createdRole)
+                .collect(Collectors.toSet());
+
+        Set<OrderingCouple> terminationOrder = context.getTerminationOrder();
+
+        // For every couple f in remainingRole, g in activeRole verify that f <: g
+        // doesn't exists
+        for (Role remainingRole : rolesRemainingActive) {
+            for (Role activeRole : rolesTerminatingNow) {
+                boolean isOrderViolated = terminationOrder.contains(createOrderingCouple(remainingRole, activeRole));
+
+                if (isOrderViolated) {
+                    addError(activeRole, instructionName + " breaks termination order for role '" + activeRole
+                            + "'. It should terminate after '" + remainingRole + "'");
+                }
+            }
+        }
+    }
+
     private void checkTerminationOrderPreservation(ProcedureCall n,
             List<TerminatingPair> actualTerminatingPairs,
             List<TerminatingPair> formalTerminatingPairs) {
 
         // Check that procedure call doesn't broke termination order
-        List<TerminatingPair> stillTerminatingPairs = context.getTerminatingPairs();
-        stillTerminatingPairs.removeAll(actualTerminatingPairs);
-
-        Set<Role> stillTermLeftRoles = stillTerminatingPairs.stream()
-                .map(TerminatingPair::createdRole)
-                .collect(Collectors.toSet());
-
-        Set<Role> actualTermLeftRoles = actualTerminatingPairs.stream()
-                .map(TerminatingPair::createdRole)
-                .collect(Collectors.toSet());
-
-        Set<OrderingCouple> contextTerminationOrder = context.getTerminationOrder();
-
-        // For every couple f,g verify that f <: g doesn't exists
-        for (Role f : stillTermLeftRoles) {
-            for (Role g : actualTermLeftRoles) {
-                boolean existsInOrder = contextTerminationOrder.contains(createOrderingCouple(f, g));
-
-                if (existsInOrder) {
-                    addError(g, "Procedure call breaks termination order for role '" + g
-                            + "'. It should terminate after '" + f + "'");
-                }
-            }
-        }
+        checkTerminationPrecedence(actualTerminatingPairs, "Procedure call");
         // ---------------------
 
         // if in actualTerminatingPairs there's (f_i, s_i) and (s_i, s_j), then ordering
@@ -641,6 +649,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // for every ordering couple (f_i, f_j) in context must exist a (f_i_p, f_j_p)
         // ordering couple declared in procedure called
+        Set<OrderingCouple> contextTerminationOrder = context.getTerminationOrder();
         for (int i = 0; i < actualTerminatingPairs.size(); i++) {
             Role f_i = actualTerminatingPairs.get(i).createdRole();
             for (int j = 0; j < actualTerminatingPairs.size(); j++) {

@@ -128,7 +128,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         // All terminating roles has to terminate before procedure termination
         if (!terminatingPairs.isEmpty()) {
             for (TerminatingPair missingPair : terminatingPairs) {
-                addError(missingPair.createdRole().position(),
+                addError(n.position(),
                         "Terminating created role '" + missingPair.createdRole()
                                 + "' must terminate before procedure termination");
             }

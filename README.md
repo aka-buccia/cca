@@ -11,7 +11,7 @@ FaaSChal is a coreographic programming language tailored for serverless Function
 
 - Parser
 - PrettyPrinter
-- Static Checker (in development)
+- Static Checker
 
 ## Building the Project
 

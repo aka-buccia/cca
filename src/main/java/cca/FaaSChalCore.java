@@ -25,7 +25,8 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 @Command(name = "faasch", description = "A toolkit for parsing, formatting and static analysis of FaaSChalCore choreographies", subcommands = {
-        FaaSChalCore.PrettyPrinter.class, FaaSChalCore.Checker.class }, mixinStandardHelpOptions = true)
+        FaaSChalCore.PrettyPrinter.class,
+        FaaSChalCore.Checker.class }, mixinStandardHelpOptions = true, version = "1.0.0")
 public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Integer> {
 
     public static void main(String[] args) {
@@ -44,7 +45,8 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
         return 1;
     }
 
-    @Command(name = "prettify", aliases = { "p" }, description = "Pretty-print source files")
+    @Command(name = "prettify", aliases = {
+            "p" }, description = "Pretty-print source files", mixinStandardHelpOptions = true)
     static class PrettyPrinter extends FaaSChalCoreCommand implements Callable<Integer> {
 
         @Mixin
@@ -86,7 +88,8 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
         }
     }
 
-    @Command(name = "check", aliases = { "c", "analysis" }, description = "Check if source files are well-formed")
+    @Command(name = "check", aliases = { "c",
+            "analysis" }, description = "Check if source files are well-formed", mixinStandardHelpOptions = true)
     static class Checker extends FaaSChalCoreCommand implements Callable<Integer> {
 
         @Override

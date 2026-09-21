@@ -9,8 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 
 import cca.ast.Position;
 import cca.ast.Program;
@@ -54,36 +53,23 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
 
         @Override
         public Integer call() {
-
             List<Path> sources = sourcePathOption.getPaths();
-            PrettyPrinterVisitor printer = new PrettyPrinterVisitor();
+            boolean globalSuccess = true;
 
-            try {
-                for (Path source : sources) {
+            for (Path source : sources) {
+                boolean success = parseAndProcess(source, p -> {
+                    PrettyPrinterVisitor pp = new PrettyPrinterVisitor();
+                    System.out.println(pp.visit(p));
+                });
 
-                    // Parse
-                    Program p = Parser.parseSourceFile(source.toFile());
+                if (!success)
+                    globalSuccess = false;
+            }
 
-                    // Pretty-print
-                    String prettyCode = printer.visit(p);
-
-                    if (outputOptions.isDryRun()) {
-                        System.out.println(prettyCode);
-                    } else {
-                        Path outputPath = outputOptions.targetpath()
-                                .orElse(source);
-                        Files.write(outputPath, prettyCode.getBytes());
-                        if (verbosityOptions.verbosity().compareTo(VerbosityLevel.INFO) >= 0) {
-                            System.out.println("Written to: " + outputPath);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                printNiceErrorMessage(e, verbosityOptions.verbosity());
+            if (!globalSuccess) {
                 System.err.println("prettify failed");
                 return 1;
             }
-
             return 0;
         }
     }
@@ -99,37 +85,31 @@ public class FaaSChalCore extends FaaSChalCoreCommand implements Callable<Intege
             boolean globalSuccess = true;
 
             for (Path source : sources) {
-                try {
-                    // Parse AST
-                    Program p = Parser.parseSourceFile(source.toFile());
-
-                    // Check well-formedness
-                    globalChecker.check(p);
-
-                    if (verbosityOptions.verbosity().compareTo(VerbosityLevel.INFO) >= 0) {
-                        System.out.println("Checking " + source + ": WELL-FORMED");
-                    }
-
-                } catch (CompoundException e) {
-                    // split errors and warnings
-                    boolean hasErrors = e.getCauses().stream()
-                            .anyMatch(cause -> !(cause instanceof WarningException));
-
-                    printNiceErrorMessage(e, verbosityOptions.verbosity());
-
-                    if (hasErrors) {
-                        globalSuccess = false;
-                        System.err.println("Checking " + source + ": ILL-FORMED");
-                    } else {
+                boolean success = parseAndProcess(source, p -> {
+                    try {
+                        globalChecker.check(p);
                         if (verbosityOptions.verbosity().compareTo(VerbosityLevel.INFO) >= 0) {
-                            System.out.println("Checking " + source + ": WELL-FORMED (with warnings)");
+                            System.out.println("Checking " + source + ": WELL-FORMED");
+                        }
+                    } catch (CompoundException e) {
+                        // split errors and warnings
+                        boolean hasErrors = e.getCauses().stream()
+                                .anyMatch(cause -> !(cause instanceof WarningException));
+
+                        printNiceErrorMessage(e, verbosityOptions.verbosity());
+
+                        if (hasErrors) {
+                            System.err.println("Checking " + source + ": ILL-FORMED");
+                        } else {
+                            if (verbosityOptions.verbosity().compareTo(VerbosityLevel.INFO) >= 0) {
+                                System.out.println("Checking " + source + ": WELL-FORMED (with warnings)");
+                            }
                         }
                     }
+                });
 
-                } catch (Exception e) {
+                if (!success) {
                     globalSuccess = false;
-                    printNiceErrorMessage(e, verbosityOptions.verbosity());
-                    System.err.println("check failed");
                 }
             }
 
@@ -243,6 +223,32 @@ abstract class FaaSChalCoreCommand {
 
     @Mixin
     PathOption.SourcePathOption sourcePathOption;
+
+    /**
+     * @param source    file to parse
+     * @param processor logic to execute after parsing
+     * @return result of parsing
+     */
+    protected boolean parseAndProcess(Path source, Consumer<Program> processor) {
+        try {
+            Program p = Parser.parseSourceFile(source.toFile());
+            processor.accept(p);
+            return true;
+
+        } catch (CompoundException e) {
+            boolean hasSyntaxErrors = e.getCauses().stream()
+                    .anyMatch(cause -> cause instanceof SyntaxException);
+
+            printNiceErrorMessage(e, verbosityOptions.verbosity());
+            if (hasSyntaxErrors)
+                System.err.println("Parsing " + source + ": " + "SYNTAX ERROR");
+            return false;
+
+        } catch (Exception e) {
+            printNiceErrorMessage(e, verbosityOptions.verbosity());
+            return false;
+        }
+    }
 
     protected static void printNiceErrorMessage(
             Throwable e, VerbosityLevel verbosity) {

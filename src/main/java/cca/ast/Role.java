@@ -21,12 +21,22 @@ public class Role extends Node {
     }
 
     @Override
+    public int hashCode() {
+        return this.name.id().hashCode();
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (o instanceof Role) {
             return this.name.equals(((Role) o).name());
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.name.id();
     }
 
 }

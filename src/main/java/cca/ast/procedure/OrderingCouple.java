@@ -1,5 +1,7 @@
 package cca.ast.procedure;
 
+import java.util.Objects;
+
 import cca.ast.Node;
 import cca.ast.Position;
 import cca.ast.Role;
@@ -22,6 +24,11 @@ public class OrderingCouple extends Node {
 
     public Role right() {
         return this.right;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(left, right);
     }
 
     @Override

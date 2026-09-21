@@ -319,7 +319,11 @@ public class PrettyPrinterVisitor implements VisitorInterface<String> {
 
     @Override
     public String visit(Constant<?> n) {
-        return n.value().toString();
+        Object val = n.value();
+        if (val instanceof String) {
+            return "\"" + val + "\"";
+        }
+        return String.valueOf(val);
     }
 
     @Override

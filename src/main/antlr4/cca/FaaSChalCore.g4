@@ -7,7 +7,7 @@ procedure: 'def' procedureName '(' procedureParameters? ')' (':' terminationOrde
 terminationOrder: '(' orderingCouple (',' orderingCouple)* ')' ;
 orderingCouple: role '<:' role ;
 
-choreography: interaction (';' interaction)* (';' terminated)?
+choreography: instruction (';' instruction)* (';' terminated)?
             | terminated
             ;
 
@@ -22,7 +22,7 @@ label: ID ;
 procedureName: ID ;
 functionName: ID ;
 
-interaction: communication
+instruction: communication
           | selection
           | assignment
           | request

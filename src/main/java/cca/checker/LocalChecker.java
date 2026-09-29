@@ -664,7 +664,8 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
                     if (!procedureTerminationOrder.contains(expectedOrderingCouple)) {
                         addError(f_j,
-                                "Termination order in context not declared in procedure call for role '" + f_j + "'");
+                                "Termination order in procedure called does not garantee that role '" + f_j
+                                        + "' terminates after role '" + f_i + "'");
                     }
 
                 }

@@ -195,8 +195,9 @@ public class LocalChecker extends AbstractVisitor<Void> {
 
         // Check source role is defined
         checkIsDefined(n.sourceRole());
+
         // Target role must not be in scope
-        checkNotInScope(n.targetRole(), "Target role '" + n.targetRole() + "' must not be in current scope");
+        checkNotInScope(n.targetRole());
 
         addTerminatingPair(n.targetRole(), null);
         // Add target role to current scope
@@ -214,7 +215,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
         checkIsDefined(n.sourceRole());
 
         // Target role has to not be in the current scope
-        checkNotInScope(n.targetRole(), "Target role '" + n.targetRole() + "' must not be in current scope");
+        checkNotInScope(n.targetRole());
 
         addTerminatingPair(n.targetRole(), n.sourceRole());
         addOrderingCouple(n.targetRole(), n.sourceRole());
@@ -369,11 +370,15 @@ public class LocalChecker extends AbstractVisitor<Void> {
     }
 
     private boolean checkNotInScope(Role role, String errorMessage) {
-        if (context.isInScope(role)) {
+        if (context.isDefined(role)) {
             addError(role, errorMessage);
             return false;
         }
         return true;
+    }
+
+    private boolean checkNotInScope(Role role) {
+        return checkNotInScope(role, "New stateless role '" + role + "' already in context");
     }
 
     private boolean checkIsTerminatingPairValid(TerminatingPair tp, String errorMessage) {
@@ -385,11 +390,7 @@ public class LocalChecker extends AbstractVisitor<Void> {
     }
 
     private boolean checkIsFree(Role role, String errorMessage) {
-        if (!context.isFree(role)) {
-            addError(role, errorMessage);
-            return false;
-        }
-        return true;
+        return checkIsDefined(role, errorMessage);
     }
 
     private void checkBranchTerminatesEqually(

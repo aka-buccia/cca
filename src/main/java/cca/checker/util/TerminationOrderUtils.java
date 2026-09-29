@@ -189,8 +189,8 @@ public final class TerminationOrderUtils {
                         .anyMatch(c -> c.left().equals(n) && c.right().equals(f));
 
                 if (hasInverseCycle) {
-                    errors.add(new IllFormedException(tp.position(), "Termination order cannot contain inverse couple ["
-                            + n + ", " + f + "] for terminating pair [" + f + ", " + n + "]"));
+                    errors.add(new IllFormedException(tp.position(), "Termination order cannot contain inverse couple ("
+                            + n + " <: " + f + ") for terminating pair [" + f + ", " + n + "]"));
                 }
             }
         }

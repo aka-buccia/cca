@@ -95,7 +95,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         List<Instruction> instructions = ctx.instruction().stream().map(this::visitInstruction)
                 .collect(Collectors.toList());
         Terminated termination = isPresent(ctx.terminated()) ? visitTerminated(ctx.terminated())
-                : new Terminated.TerminatedOmitted(getPosition(ctx.getStop()));
+                : new Terminated.TerminatedOmitted(getPositionAtEnd(ctx.getStop()));
 
         return new Choreography(instructions, termination, getPosition(ctx));
     }
@@ -124,7 +124,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
             return new Constant.ConstantInt(value, getPosition(ctx));
         } else if (isPresent(ctx.STRING())) {
             String value = ctx.STRING().getText();
-            // Rimuovi le virgolette se presenti
+            // remove inverted commas
             value = value.substring(1, value.length() - 1);
             return new Constant.ConstantString(value, getPosition(ctx));
         } else {
@@ -300,7 +300,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         Choreography ifBranch = visitChoreography(ctx.choreography(0));
         Choreography elseBranch = isPresent(ctx.choreography(1))
                 ? visitChoreography(ctx.choreography(1))
-                : createNoOpChoreography(getPosition(ctx.choreography(0).getStop()));
+                : createNoOpChoreography(getPosition(ctx.getStop()));
 
         return new Conditional(condition, targetRole, ifBranch, elseBranch, getPosition(ctx));
     }
@@ -420,6 +420,11 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     private Position getPosition(ParserRuleContext c) {
         return getPosition(c.getStart());
+    }
+
+    private Position getPositionAtEnd(Token t) {
+        int endColumn = t.getCharPositionInLine() + t.getText().length();
+        return new Position(this.file, t.getLine(), endColumn);
     }
 
     private boolean isPresent(ParserRuleContext p) {

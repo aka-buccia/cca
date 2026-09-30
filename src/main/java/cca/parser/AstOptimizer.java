@@ -63,7 +63,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
         ProcedureParameterList parameters = visitProcedureParameters(ctx.procedureParameters());
         TerminationOrder terminationOrder = isPresent(ctx.terminationOrder())
                 ? visitTerminationOrder(ctx.terminationOrder())
-                : new TerminationOrder.TerminationOrderDefault(getPosition(ctx.procedureParameters().getStop()));
+                : new TerminationOrder.TerminationOrderDefault(getPositionAtEnd(ctx.procedureParameters().getStop()));
         Choreography choreography = visitChoreography(ctx.choreography());
 
         return new Procedure(name, parameters, terminationOrder, choreography, getPosition(ctx));
@@ -415,6 +415,7 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
 
     // Method for extracting token position
     private Position getPosition(Token t) {
+        // getCharPositionInLine starts from 0
         return new Position(this.file, t.getLine(), t.getCharPositionInLine() + 1);
     }
 
@@ -423,7 +424,8 @@ public class AstOptimizer implements FaaSChalCoreVisitor {
     }
 
     private Position getPositionAtEnd(Token t) {
-        int endColumn = t.getCharPositionInLine() + t.getText().length();
+        // +1 for positioning after the end
+        int endColumn = t.getCharPositionInLine() + t.getText().length() + 1;
         return new Position(this.file, t.getLine(), endColumn);
     }
 
